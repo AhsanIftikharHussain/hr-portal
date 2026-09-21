@@ -25,16 +25,18 @@
 
                 <nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-4" aria-label="Primary navigation">
                     <x-nav-item :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">Dashboard</x-nav-item>
-                    <x-nav-item disabled>Employees</x-nav-item>
+                    <x-nav-item :href="route('admin.employees.index')" :active="request()->routeIs('admin.employees.*')">Employees</x-nav-item>
                     <x-nav-item disabled>Attendance</x-nav-item>
                     <x-nav-item disabled>Leave Management</x-nav-item>
                     <x-nav-item disabled>Contracts &amp; Documents</x-nav-item>
                     <x-nav-item disabled>Office Policies</x-nav-item>
                     <x-nav-item disabled>Holiday Calendar</x-nav-item>
-                    <x-nav-item disabled>Settings</x-nav-item>
+                    <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Settings</div>
+                    <x-nav-item :href="route('admin.departments.index')" :active="request()->routeIs('admin.departments.*')">Departments</x-nav-item>
+                    <x-nav-item :href="route('admin.job-titles.index')" :active="request()->routeIs('admin.job-titles.*')">Designations</x-nav-item>
                 </nav>
 
-                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">Phase 0 foundation</div>
+                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">Employee Management</div>
             </aside>
 
             <div class="min-w-0 flex-1">
@@ -62,6 +64,9 @@
 
                 <main class="p-4 sm:p-6 lg:p-8">
                     <div class="mx-auto max-w-7xl">
+                        @if (session('status'))
+                            <x-alert type="success" class="mb-6">{{ session('status') }}</x-alert>
+                        @endif
                         {{ $slot }}
                     </div>
                 </main>

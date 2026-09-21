@@ -17,7 +17,12 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeeder::class);
 
         if (app()->isLocal()) {
-            $this->call(DevelopmentUserSeeder::class);
+            $this->call([
+                DevelopmentUserSeeder::class,
+                DepartmentSeeder::class,
+                JobTitleSeeder::class,
+                EmployeeSeeder::class,
+            ]);
         }
     }
 }
