@@ -9,13 +9,19 @@ use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\EmployeeContractController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\EmployeeDocumentController;
+use App\Http\Controllers\Admin\HolidayCalendarController;
+use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\InactiveDepartmentController;
+use App\Http\Controllers\Admin\InactiveHolidayController;
 use App\Http\Controllers\Admin\InactiveJobTitleController;
 use App\Http\Controllers\Admin\InactiveLeaveTypeController;
+use App\Http\Controllers\Admin\InactivePolicyCategoryController;
 use App\Http\Controllers\Admin\JobTitleController;
 use App\Http\Controllers\Admin\LeaveRequestController;
 use App\Http\Controllers\Admin\LeaveTypeController;
 use App\Http\Controllers\Admin\MonthlyAttendanceController;
+use App\Http\Controllers\Admin\PolicyCategoryController;
+use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\RejectedLeaveRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +44,15 @@ Route::prefix('admin')
             ->name('contracts.download');
         Route::resource('contracts', EmployeeContractController::class)
             ->only(['index', 'create', 'store', 'edit', 'update']);
+
+        Route::resource('policies', PolicyController::class)->except('destroy');
+
+        Route::get('holidays/calendar', HolidayCalendarController::class)->name('holidays.calendar');
+        Route::post('holidays/{holiday}/inactive', [InactiveHolidayController::class, 'store'])
+            ->name('holidays.deactivate');
+        Route::delete('holidays/{holiday}/inactive', [InactiveHolidayController::class, 'destroy'])
+            ->name('holidays.reactivate');
+        Route::resource('holidays', HolidayController::class)->except(['show', 'destroy']);
 
         Route::get('employees/{employee}/documents/create', [EmployeeDocumentController::class, 'create'])
             ->name('employee-documents.create');
@@ -70,6 +85,14 @@ Route::prefix('admin')
             ->only(['index', 'create', 'store', 'show']);
 
         Route::prefix('settings')->group(function (): void {
+            Route::post('policy-categories/{policy_category}/inactive', [InactivePolicyCategoryController::class, 'store'])
+                ->name('policy-categories.deactivate');
+            Route::delete('policy-categories/{policy_category}/inactive', [InactivePolicyCategoryController::class, 'destroy'])
+                ->name('policy-categories.reactivate');
+            Route::resource('policy-categories', PolicyCategoryController::class)
+                ->parameters(['policy-categories' => 'policy_category'])
+                ->except(['show', 'destroy']);
+
             Route::post('departments/{department}/inactive', [InactiveDepartmentController::class, 'store'])
                 ->name('departments.deactivate');
             Route::delete('departments/{department}/inactive', [InactiveDepartmentController::class, 'destroy'])

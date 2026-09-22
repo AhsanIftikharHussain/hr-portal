@@ -25,6 +25,17 @@
             </div>
         </section>
 
+        <section aria-labelledby="holiday-overview-heading">
+            <div class="mb-3 flex items-end justify-between gap-4"><div><h2 id="holiday-overview-heading" class="text-lg font-semibold text-slate-950">Upcoming Holidays</h2><p class="mt-1 text-sm text-slate-500">The next active holidays on the HR calendar.</p></div><a href="{{ route('admin.holidays.calendar') }}" class="text-sm font-semibold text-portal-900 hover:underline">View calendar →</a></div>
+            <x-card>
+                @if ($upcomingHolidays->isEmpty())
+                    <x-empty-state title="No upcoming holidays" description="Add or activate future holidays to show them here." />
+                @else
+                    <div class="divide-y divide-slate-100">@foreach ($upcomingHolidays as $holiday)<a href="{{ route('admin.holidays.calendar', ['year' => $holiday->holiday_date->year]) }}" class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"><span><span class="block text-sm font-semibold text-slate-900">{{ $holiday->name }}</span><span class="block text-xs text-slate-500">{{ $holiday->type->label() }} · {{ $holiday->day_portion->label() }}</span></span><span class="whitespace-nowrap text-sm font-medium text-slate-700">{{ $holiday->holiday_date->format('d M Y') }}</span></a>@endforeach</div>
+                @endif
+            </x-card>
+        </section>
+
         <section aria-labelledby="attendance-metrics-heading">
             <div class="mb-3 flex items-end justify-between gap-4"><div><h2 id="attendance-metrics-heading" class="text-lg font-semibold text-slate-950">Attendance Today</h2><p class="mt-1 text-sm text-slate-500">Counts use explicit records only; missing records are not treated as absent.</p></div><a href="{{ route('admin.attendance.index', ['date' => $today->toDateString()]) }}" class="text-sm font-semibold text-portal-900 hover:underline">View attendance →</a></div>
             <div class="grid gap-4 sm:grid-cols-2">

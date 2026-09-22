@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
         $this->call(LeaveTypeSeeder::class);
+        $this->call(PolicyCategorySeeder::class);
 
         if (app()->isLocal()) {
             $this->call([

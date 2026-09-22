@@ -11,6 +11,7 @@ use App\Models\AttendanceRecord;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\EmployeeContract;
+use App\Models\Holiday;
 use App\Models\LeaveRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -95,6 +96,14 @@ class DashboardController extends Controller
             ->whereHas('employee', fn (Builder $query) => $query->whereNull('employees.deleted_at'))
             ->count();
 
+        $upcomingHolidays = Holiday::query()
+            ->where('is_active', true)
+            ->whereDate('holiday_date', '>=', $today)
+            ->orderBy('holiday_date')
+            ->orderBy('name')
+            ->limit(3)
+            ->get(['id', 'name', 'holiday_date', 'type', 'day_portion']);
+
         return view('admin.dashboard', [
             'metrics' => $metrics,
             'statusOverview' => $statusOverview,
@@ -104,6 +113,7 @@ class DashboardController extends Controller
             'today' => $today,
             'attendanceMetrics' => $attendanceMetrics,
             'contractsExpiringSoon' => $contractsExpiringSoon,
+            'upcomingHolidays' => $upcomingHolidays,
         ]);
     }
 }

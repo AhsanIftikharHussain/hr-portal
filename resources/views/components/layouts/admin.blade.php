@@ -29,8 +29,8 @@
                     <x-nav-item :href="route('admin.attendance.index')" :active="request()->routeIs('admin.attendance.*')">Attendance</x-nav-item>
                     <x-nav-item :href="route('admin.leave-requests.index')" :active="request()->routeIs('admin.leave-requests.*')">Leave Management</x-nav-item>
                     <x-nav-item :href="route('admin.contracts.index')" :active="request()->routeIs('admin.contracts.*', 'admin.employee-documents.*')">Contracts &amp; Documents</x-nav-item>
-                    <x-nav-item disabled>Office Policies</x-nav-item>
-                    <x-nav-item disabled>Holiday Calendar</x-nav-item>
+                    <x-nav-item :href="route('admin.policies.index')" :active="request()->routeIs('admin.policies.*', 'admin.policy-categories.*')">Office Policies</x-nav-item>
+                    <x-nav-item :href="route('admin.holidays.calendar')" :active="request()->routeIs('admin.holidays.*')">Holiday Calendar</x-nav-item>
                     <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Settings</div>
                     <x-nav-item :href="route('admin.departments.index')" :active="request()->routeIs('admin.departments.*')">Departments</x-nav-item>
                     <x-nav-item :href="route('admin.job-titles.index')" :active="request()->routeIs('admin.job-titles.*')">Designations</x-nav-item>

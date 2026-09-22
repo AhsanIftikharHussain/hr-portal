@@ -63,6 +63,18 @@ class User extends Authenticatable
         return $this->hasMany(EmployeeDocument::class, 'uploaded_by');
     }
 
+    /** @return HasMany<Policy, $this> */
+    public function createdPolicies(): HasMany
+    {
+        return $this->hasMany(Policy::class, 'created_by');
+    }
+
+    /** @return HasMany<Policy, $this> */
+    public function updatedPolicies(): HasMany
+    {
+        return $this->hasMany(Policy::class, 'updated_by');
+    }
+
     public function hasRole(string $slug): bool
     {
         return $this->roles()->where('slug', $slug)->exists();
