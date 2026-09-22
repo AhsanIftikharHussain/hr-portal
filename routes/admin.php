@@ -1,12 +1,18 @@
 <?php
 
+use App\Http\Controllers\Admin\ApprovedLeaveRequestController;
 use App\Http\Controllers\Admin\ArchivedEmployeeController;
+use App\Http\Controllers\Admin\CancelledLeaveRequestController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\InactiveDepartmentController;
 use App\Http\Controllers\Admin\InactiveJobTitleController;
+use App\Http\Controllers\Admin\InactiveLeaveTypeController;
 use App\Http\Controllers\Admin\JobTitleController;
+use App\Http\Controllers\Admin\LeaveRequestController;
+use App\Http\Controllers\Admin\LeaveTypeController;
+use App\Http\Controllers\Admin\RejectedLeaveRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
@@ -24,6 +30,17 @@ Route::prefix('admin')
             ->except('destroy')
             ->withTrashed(['show']);
 
+        Route::post('leave/{leave_request}/approval', ApprovedLeaveRequestController::class)
+            ->name('leave-requests.approve');
+        Route::post('leave/{leave_request}/rejection', RejectedLeaveRequestController::class)
+            ->name('leave-requests.reject');
+        Route::post('leave/{leave_request}/cancellation', CancelledLeaveRequestController::class)
+            ->name('leave-requests.cancel');
+        Route::resource('leave', LeaveRequestController::class)
+            ->parameters(['leave' => 'leave_request'])
+            ->names('leave-requests')
+            ->only(['index', 'create', 'store', 'show']);
+
         Route::prefix('settings')->group(function (): void {
             Route::post('departments/{department}/inactive', [InactiveDepartmentController::class, 'store'])
                 ->name('departments.deactivate');
@@ -37,6 +54,14 @@ Route::prefix('admin')
                 ->name('job-titles.reactivate');
             Route::resource('job-titles', JobTitleController::class)
                 ->parameters(['job-titles' => 'job_title'])
+                ->except(['show', 'destroy']);
+
+            Route::post('leave-types/{leave_type}/inactive', [InactiveLeaveTypeController::class, 'store'])
+                ->name('leave-types.deactivate');
+            Route::delete('leave-types/{leave_type}/inactive', [InactiveLeaveTypeController::class, 'destroy'])
+                ->name('leave-types.reactivate');
+            Route::resource('leave-types', LeaveTypeController::class)
+                ->parameters(['leave-types' => 'leave_type'])
                 ->except(['show', 'destroy']);
         });
     });

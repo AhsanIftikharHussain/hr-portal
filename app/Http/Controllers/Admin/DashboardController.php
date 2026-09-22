@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\EmploymentStatus;
 use App\Http\Controllers\Controller;
+use App\LeaveRequestStatus;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\LeaveRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
@@ -53,11 +55,28 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $today = today();
+        $leaveMetrics = [
+            'pending' => LeaveRequest::query()
+                ->where('status', LeaveRequestStatus::Pending)
+                ->whereHas('employee', fn (Builder $query) => $query->whereNull('deleted_at'))
+                ->count(),
+            'on_leave_today' => LeaveRequest::query()
+                ->where('status', LeaveRequestStatus::Approved)
+                ->whereDate('start_date', '<=', $today)
+                ->whereDate('end_date', '>=', $today)
+                ->whereHas('employee', fn (Builder $query) => $query->whereNull('deleted_at'))
+                ->distinct('employee_id')
+                ->count('employee_id'),
+        ];
+
         return view('admin.dashboard', [
             'metrics' => $metrics,
             'statusOverview' => $statusOverview,
             'departments' => $departments,
             'recentEmployees' => $recentEmployees,
+            'leaveMetrics' => $leaveMetrics,
+            'today' => $today,
         ]);
     }
 }

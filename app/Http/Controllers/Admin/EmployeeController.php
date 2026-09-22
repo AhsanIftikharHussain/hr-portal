@@ -8,6 +8,7 @@ use App\Gender;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
+use App\LeaveRequestStatus;
 use App\MaritalStatus;
 use App\Models\Department;
 use App\Models\Employee;
@@ -76,7 +77,21 @@ class EmployeeController extends Controller
         Gate::authorize('view', $employee);
         $employee->load(['department', 'jobTitle', 'reportingManager', 'user']);
 
-        return view('admin.employees.show', ['employee' => $employee]);
+        $leaveRequests = $employee->leaveRequests()
+            ->with('leaveType:id,name')
+            ->orderByDesc('requested_at')
+            ->orderByDesc('id')
+            ->limit(10)
+            ->get();
+        $approvedLeaveDays = $employee->leaveRequests()
+            ->where('status', LeaveRequestStatus::Approved)
+            ->sum('duration_days');
+
+        return view('admin.employees.show', [
+            'employee' => $employee,
+            'leaveRequests' => $leaveRequests,
+            'approvedLeaveDays' => $approvedLeaveDays,
+        ]);
     }
 
     public function edit(Employee $employee): View

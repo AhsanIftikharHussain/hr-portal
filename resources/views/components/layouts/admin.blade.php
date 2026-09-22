@@ -27,16 +27,17 @@
                     <x-nav-item :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">Dashboard</x-nav-item>
                     <x-nav-item :href="route('admin.employees.index')" :active="request()->routeIs('admin.employees.*')">Employees</x-nav-item>
                     <x-nav-item disabled>Attendance</x-nav-item>
-                    <x-nav-item disabled>Leave Management</x-nav-item>
+                    <x-nav-item :href="route('admin.leave-requests.index')" :active="request()->routeIs('admin.leave-requests.*')">Leave Management</x-nav-item>
                     <x-nav-item disabled>Contracts &amp; Documents</x-nav-item>
                     <x-nav-item disabled>Office Policies</x-nav-item>
                     <x-nav-item disabled>Holiday Calendar</x-nav-item>
                     <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Settings</div>
                     <x-nav-item :href="route('admin.departments.index')" :active="request()->routeIs('admin.departments.*')">Departments</x-nav-item>
                     <x-nav-item :href="route('admin.job-titles.index')" :active="request()->routeIs('admin.job-titles.*')">Designations</x-nav-item>
+                    <x-nav-item :href="route('admin.leave-types.index')" :active="request()->routeIs('admin.leave-types.*')">Leave Types</x-nav-item>
                 </nav>
 
-                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">Employee Management</div>
+                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">HR Administration</div>
             </aside>
 
             <div class="min-w-0 flex-1">

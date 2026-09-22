@@ -54,6 +54,12 @@ class Employee extends Model
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasMany<LeaveRequest, $this> */
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
     protected function casts(): array
     {
         return [

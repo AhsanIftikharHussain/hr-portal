@@ -17,7 +17,8 @@
             <span class="rounded-lg bg-portal-900 px-3 py-2 font-medium text-white">Overview</span>
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Employment</span>
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Emergency Contact</span>
-            @foreach (['Attendance', 'Leave', 'Contracts', 'Documents', 'Onboarding', 'Offboarding'] as $futureTab)
+            <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Leave History</span>
+            @foreach (['Attendance', 'Contracts', 'Documents', 'Onboarding', 'Offboarding'] as $futureTab)
                 <span class="cursor-not-allowed rounded-lg border border-dashed border-slate-300 px-3 py-2 text-slate-400" title="Planned for a future phase">{{ $futureTab }}</span>
             @endforeach
         </div>
@@ -57,6 +58,15 @@
                     <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Relationship</dt><dd class="mt-1 text-sm text-slate-900">{{ $employee->emergency_contact_relationship ?: 'Not provided' }}</dd></div>
                     <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Contact number</dt><dd class="mt-1 text-sm text-slate-900">{{ $employee->emergency_contact_number ?: 'Not provided' }}</dd></div>
                 </dl>
+            </x-card>
+
+            <x-card title="Leave History" class="overflow-hidden p-0 xl:col-span-2">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4"><div><p class="text-sm font-semibold text-slate-950">{{ $approvedLeaveDays }} approved calendar {{ Str::plural('day', $approvedLeaveDays) }}</p><p class="mt-1 text-xs text-slate-500">Approved usage history only. No entitlement or remaining-balance policy has been configured.</p></div>@if (! $employee->trashed())<a href="{{ route('admin.leave-requests.create', ['employee_id' => $employee->id]) }}" class="text-sm font-semibold text-portal-900 hover:underline">Add leave request</a>@endif</div>
+                @if ($leaveRequests->isEmpty())
+                    <x-empty-state title="No leave history" description="Leave requests recorded for this employee will appear here." class="m-5" />
+                @else
+                    <div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Type</th><th class="px-5 py-3">Dates</th><th class="px-5 py-3">Duration</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Requested</th><th class="px-5 py-3 text-right">Details</th></tr></thead><tbody class="divide-y divide-slate-100">@foreach ($leaveRequests as $leaveRequest)<tr><td class="px-5 py-4 font-medium text-slate-950">{{ $leaveRequest->leaveType->name }}</td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $leaveRequest->start_date->format('d M Y') }} – {{ $leaveRequest->end_date->format('d M Y') }}</td><td class="px-5 py-4 text-slate-600">{{ $leaveRequest->duration_days }} {{ Str::plural('day', $leaveRequest->duration_days) }}</td><td class="px-5 py-4"><x-leave-status-badge :status="$leaveRequest->status" /></td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $leaveRequest->requested_at->format('d M Y') }}</td><td class="px-5 py-4 text-right"><a href="{{ route('admin.leave-requests.show', $leaveRequest) }}" class="font-semibold text-portal-900 hover:underline">View</a></td></tr>@endforeach</tbody></table></div>
+                @endif
             </x-card>
         </div>
     </div>

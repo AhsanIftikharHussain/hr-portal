@@ -18,6 +18,14 @@
             </div>
         </section>
 
+        <section aria-labelledby="leave-metrics-heading">
+            <div class="mb-3 flex items-end justify-between gap-4"><div><h2 id="leave-metrics-heading" class="text-lg font-semibold text-slate-950">Leave Overview</h2><p class="mt-1 text-sm text-slate-500">Live counts from approved and pending leave requests.</p></div><a href="{{ route('admin.leave-requests.index') }}" class="text-sm font-semibold text-portal-900 hover:underline">View all leave →</a></div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <a href="{{ route('admin.leave-requests.index', ['status' => \App\LeaveRequestStatus::Pending->value]) }}" class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"><p class="text-sm font-medium text-slate-500">Pending Leave Requests</p><p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $leaveMetrics['pending'] }}</p><p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">Review requests →</p></a>
+                <a href="{{ route('admin.leave-requests.index', ['status' => \App\LeaveRequestStatus::Approved->value, 'date_from' => $today->toDateString(), 'date_to' => $today->toDateString()]) }}" class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"><p class="text-sm font-medium text-slate-500">On Leave Today</p><p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $leaveMetrics['on_leave_today'] }}</p><p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">View approved date ranges →</p></a>
+            </div>
+        </section>
+
         <div class="grid gap-6 xl:grid-cols-2">
             <x-card title="Employment Status Overview">
                 <div class="divide-y divide-slate-100">
