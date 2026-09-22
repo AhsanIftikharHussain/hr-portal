@@ -17,8 +17,9 @@
             <span class="rounded-lg bg-portal-900 px-3 py-2 font-medium text-white">Overview</span>
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Employment</span>
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Emergency Contact</span>
+            <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Attendance</span>
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Leave History</span>
-            @foreach (['Attendance', 'Contracts', 'Documents', 'Onboarding', 'Offboarding'] as $futureTab)
+            @foreach (['Contracts', 'Documents', 'Onboarding', 'Offboarding'] as $futureTab)
                 <span class="cursor-not-allowed rounded-lg border border-dashed border-slate-300 px-3 py-2 text-slate-400" title="Planned for a future phase">{{ $futureTab }}</span>
             @endforeach
         </div>
@@ -58,6 +59,20 @@
                     <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Relationship</dt><dd class="mt-1 text-sm text-slate-900">{{ $employee->emergency_contact_relationship ?: 'Not provided' }}</dd></div>
                     <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Contact number</dt><dd class="mt-1 text-sm text-slate-900">{{ $employee->emergency_contact_number ?: 'Not provided' }}</dd></div>
                 </dl>
+            </x-card>
+
+            <x-card title="Attendance History" class="overflow-hidden p-0 xl:col-span-2">
+                <div class="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 px-5 py-4">
+                    <form method="GET" action="{{ route('admin.employees.show', $employee) }}" class="flex flex-wrap items-end gap-3"><x-form-select label="Month" name="attendance_month" :value="request('attendance_month')" :options="$attendanceMonths" placeholder="All months" /><x-form-input label="Year" name="attendance_year" type="number" :value="request('attendance_year')" min="2000" max="2100" /><x-button>Filter</x-button><a href="{{ route('admin.employees.show', $employee) }}" class="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700">Clear</a></form>
+                    @if (! $employee->trashed())<a href="{{ route('admin.attendance.create', ['employee_id' => $employee->id]) }}" class="text-sm font-semibold text-portal-900 hover:underline">Record attendance</a>@endif
+                </div>
+                @if ($attendanceRecords->isEmpty())
+                    <x-empty-state title="No attendance history" description="No explicit attendance records match this employee and filter." class="m-5" />
+                @else
+                    <div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Date</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Check In</th><th class="px-5 py-3">Check Out</th><th class="px-5 py-3">Duration</th><th class="px-5 py-3">Source</th><th class="px-5 py-3 text-right">Action</th></tr></thead><tbody class="divide-y divide-slate-100">@foreach ($attendanceRecords as $attendanceRecord)@php($durationMinutes = $attendanceRecord->workingDurationMinutes())<tr><td class="whitespace-nowrap px-5 py-4 font-medium text-slate-950">{{ $attendanceRecord->attendance_date->format('d M Y') }}</td><td class="px-5 py-4"><x-attendance-status-badge :status="$attendanceRecord->status" /></td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $attendanceRecord->check_in_at?->format('H:i') ?? '—' }}</td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $attendanceRecord->check_out_at?->format('H:i') ?? '—' }}</td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $durationMinutes === null ? '—' : intdiv($durationMinutes, 60).'h '.($durationMinutes % 60).'m' }}</td><td class="px-5 py-4 text-slate-600">{{ $attendanceRecord->source->label() }}@if ($attendanceRecord->original_source)<span class="block text-xs text-slate-400">Originally {{ $attendanceRecord->original_source->label() }}</span>@endif</td><td class="px-5 py-4 text-right"><a href="{{ route('admin.attendance.edit', $attendanceRecord) }}" class="font-semibold text-portal-900 hover:underline">Correct</a></td></tr>@endforeach</tbody></table></div>
+                    <div class="border-t border-slate-200 px-5 py-4">{{ $attendanceRecords->links() }}</div>
+                @endif
+                <p class="border-t border-slate-200 px-5 py-4 text-xs text-slate-500">Working duration is raw elapsed time without break, schedule, overtime, or payroll adjustments.</p>
             </x-card>
 
             <x-card title="Leave History" class="overflow-hidden p-0 xl:col-span-2">

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ApprovedLeaveRequestController;
 use App\Http\Controllers\Admin\ArchivedEmployeeController;
+use App\Http\Controllers\Admin\AttendanceRecordController;
 use App\Http\Controllers\Admin\CancelledLeaveRequestController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Admin\InactiveLeaveTypeController;
 use App\Http\Controllers\Admin\JobTitleController;
 use App\Http\Controllers\Admin\LeaveRequestController;
 use App\Http\Controllers\Admin\LeaveTypeController;
+use App\Http\Controllers\Admin\MonthlyAttendanceController;
 use App\Http\Controllers\Admin\RejectedLeaveRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +31,12 @@ Route::prefix('admin')
         Route::resource('employees', EmployeeController::class)
             ->except('destroy')
             ->withTrashed(['show']);
+
+        Route::get('attendance/monthly', MonthlyAttendanceController::class)
+            ->name('attendance.monthly');
+        Route::resource('attendance', AttendanceRecordController::class)
+            ->parameters(['attendance' => 'attendance_record'])
+            ->only(['index', 'create', 'store', 'edit', 'update']);
 
         Route::post('leave/{leave_request}/approval', ApprovedLeaveRequestController::class)
             ->name('leave-requests.approve');

@@ -60,6 +60,12 @@ class Employee extends Model
         return $this->hasMany(LeaveRequest::class);
     }
 
+    /** @return HasMany<AttendanceRecord, $this> */
+    public function attendanceRecords(): HasMany
+    {
+        return $this->hasMany(AttendanceRecord::class);
+    }
+
     protected function casts(): array
     {
         return [

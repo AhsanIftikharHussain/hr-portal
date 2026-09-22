@@ -26,7 +26,7 @@
                 <nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-4" aria-label="Primary navigation">
                     <x-nav-item :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">Dashboard</x-nav-item>
                     <x-nav-item :href="route('admin.employees.index')" :active="request()->routeIs('admin.employees.*')">Employees</x-nav-item>
-                    <x-nav-item disabled>Attendance</x-nav-item>
+                    <x-nav-item :href="route('admin.attendance.index')" :active="request()->routeIs('admin.attendance.*')">Attendance</x-nav-item>
                     <x-nav-item :href="route('admin.leave-requests.index')" :active="request()->routeIs('admin.leave-requests.*')">Leave Management</x-nav-item>
                     <x-nav-item disabled>Contracts &amp; Documents</x-nav-item>
                     <x-nav-item disabled>Office Policies</x-nav-item>

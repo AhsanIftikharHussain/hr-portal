@@ -72,9 +72,13 @@ class EmployeeController extends Controller
             ->with('status', 'Employee created successfully.');
     }
 
-    public function show(Employee $employee): View
+    public function show(Request $request, Employee $employee): View
     {
         Gate::authorize('view', $employee);
+        $request->validate([
+            'attendance_month' => ['nullable', 'integer', 'between:1,12'],
+            'attendance_year' => ['nullable', 'integer', 'between:2000,2100'],
+        ]);
         $employee->load(['department', 'jobTitle', 'reportingManager', 'user']);
 
         $leaveRequests = $employee->leaveRequests()
@@ -87,10 +91,22 @@ class EmployeeController extends Controller
             ->where('status', LeaveRequestStatus::Approved)
             ->sum('duration_days');
 
+        $attendanceRecords = $employee->attendanceRecords()
+            ->when($request->integer('attendance_month'), fn (Builder $query, int $month) => $query->whereMonth('attendance_date', $month))
+            ->when($request->integer('attendance_year'), fn (Builder $query, int $year) => $query->whereYear('attendance_date', $year))
+            ->orderByDesc('attendance_date')
+            ->orderByDesc('id')
+            ->paginate(15, ['*'], 'attendance_page')
+            ->withQueryString();
+
         return view('admin.employees.show', [
             'employee' => $employee,
             'leaveRequests' => $leaveRequests,
             'approvedLeaveDays' => $approvedLeaveDays,
+            'attendanceRecords' => $attendanceRecords,
+            'attendanceMonths' => collect(range(1, 12))->mapWithKeys(fn (int $month): array => [
+                $month => now()->startOfYear()->addMonths($month - 1)->format('F'),
+            ]),
         ]);
     }
 

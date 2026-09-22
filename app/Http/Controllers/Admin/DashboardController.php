@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\AttendanceStatus;
 use App\EmploymentStatus;
 use App\Http\Controllers\Controller;
 use App\LeaveRequestStatus;
+use App\Models\AttendanceRecord;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
@@ -70,6 +72,21 @@ class DashboardController extends Controller
                 ->count('employee_id'),
         ];
 
+        $attendanceCounts = AttendanceRecord::query()
+            ->toBase()
+            ->join('employees', 'employees.id', '=', 'attendance_records.employee_id')
+            ->whereNull('employees.deleted_at')
+            ->whereDate('attendance_records.attendance_date', $today)
+            ->whereIn('attendance_records.status', [AttendanceStatus::Present->value, AttendanceStatus::Absent->value])
+            ->selectRaw('attendance_records.status, COUNT(DISTINCT attendance_records.employee_id) as total')
+            ->groupBy('attendance_records.status')
+            ->pluck('total', 'status');
+
+        $attendanceMetrics = [
+            'present' => (int) $attendanceCounts->get(AttendanceStatus::Present->value, 0),
+            'absent' => (int) $attendanceCounts->get(AttendanceStatus::Absent->value, 0),
+        ];
+
         return view('admin.dashboard', [
             'metrics' => $metrics,
             'statusOverview' => $statusOverview,
@@ -77,6 +94,7 @@ class DashboardController extends Controller
             'recentEmployees' => $recentEmployees,
             'leaveMetrics' => $leaveMetrics,
             'today' => $today,
+            'attendanceMetrics' => $attendanceMetrics,
         ]);
     }
 }

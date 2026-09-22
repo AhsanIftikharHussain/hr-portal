@@ -39,6 +39,18 @@ class User extends Authenticatable
         return $this->hasMany(LeaveRequest::class, 'reviewed_by');
     }
 
+    /** @return HasMany<AttendanceRecord, $this> */
+    public function recordedAttendanceRecords(): HasMany
+    {
+        return $this->hasMany(AttendanceRecord::class, 'recorded_by');
+    }
+
+    /** @return HasMany<AttendanceRecord, $this> */
+    public function correctedAttendanceRecords(): HasMany
+    {
+        return $this->hasMany(AttendanceRecord::class, 'corrected_by');
+    }
+
     public function hasRole(string $slug): bool
     {
         return $this->roles()->where('slug', $slug)->exists();
