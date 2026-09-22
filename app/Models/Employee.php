@@ -66,6 +66,18 @@ class Employee extends Model
         return $this->hasMany(AttendanceRecord::class);
     }
 
+    /** @return HasMany<EmployeeContract, $this> */
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(EmployeeContract::class);
+    }
+
+    /** @return HasMany<EmployeeDocument, $this> */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(EmployeeDocument::class);
+    }
+
     protected function casts(): array
     {
         return [

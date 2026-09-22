@@ -18,6 +18,13 @@
             </div>
         </section>
 
+        <section aria-labelledby="contract-metrics-heading">
+            <div class="mb-3 flex items-end justify-between gap-4"><div><h2 id="contract-metrics-heading" class="text-lg font-semibold text-slate-950">Contract Expiry</h2><p class="mt-1 text-sm text-slate-500">Active or upcoming contracts ending within the next 30 days.</p></div><a href="{{ route('admin.contracts.index') }}" class="text-sm font-semibold text-portal-900 hover:underline">View all contracts →</a></div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <a href="{{ route('admin.contracts.index', ['expiry_window' => 30]) }}" class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"><p class="text-sm font-medium text-slate-500">Contracts Expiring Soon</p><p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $contractsExpiringSoon }}</p><p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">View next 30 days →</p></a>
+            </div>
+        </section>
+
         <section aria-labelledby="attendance-metrics-heading">
             <div class="mb-3 flex items-end justify-between gap-4"><div><h2 id="attendance-metrics-heading" class="text-lg font-semibold text-slate-950">Attendance Today</h2><p class="mt-1 text-sm text-slate-500">Counts use explicit records only; missing records are not treated as absent.</p></div><a href="{{ route('admin.attendance.index', ['date' => $today->toDateString()]) }}" class="text-sm font-semibold text-portal-900 hover:underline">View attendance →</a></div>
             <div class="grid gap-4 sm:grid-cols-2">

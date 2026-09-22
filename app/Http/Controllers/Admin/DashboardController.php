@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\AttendanceStatus;
+use App\ContractStatus;
 use App\EmploymentStatus;
 use App\Http\Controllers\Controller;
 use App\LeaveRequestStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\EmployeeContract;
 use App\Models\LeaveRequest;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -87,6 +89,12 @@ class DashboardController extends Controller
             'absent' => (int) $attendanceCounts->get(AttendanceStatus::Absent->value, 0),
         ];
 
+        $contractsExpiringSoon = EmployeeContract::query()
+            ->whereIn('status', ContractStatus::expiringStatuses())
+            ->whereBetween('end_date', [$today, $today->copy()->addDays(30)])
+            ->whereHas('employee', fn (Builder $query) => $query->whereNull('employees.deleted_at'))
+            ->count();
+
         return view('admin.dashboard', [
             'metrics' => $metrics,
             'statusOverview' => $statusOverview,
@@ -95,6 +103,7 @@ class DashboardController extends Controller
             'leaveMetrics' => $leaveMetrics,
             'today' => $today,
             'attendanceMetrics' => $attendanceMetrics,
+            'contractsExpiringSoon' => $contractsExpiringSoon,
         ]);
     }
 }

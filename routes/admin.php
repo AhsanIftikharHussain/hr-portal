@@ -6,7 +6,9 @@ use App\Http\Controllers\Admin\AttendanceRecordController;
 use App\Http\Controllers\Admin\CancelledLeaveRequestController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\EmployeeContractController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\EmployeeDocumentController;
 use App\Http\Controllers\Admin\InactiveDepartmentController;
 use App\Http\Controllers\Admin\InactiveJobTitleController;
 use App\Http\Controllers\Admin\InactiveLeaveTypeController;
@@ -31,6 +33,24 @@ Route::prefix('admin')
         Route::resource('employees', EmployeeController::class)
             ->except('destroy')
             ->withTrashed(['show']);
+
+        Route::get('contracts/{contract}/download', [EmployeeContractController::class, 'download'])
+            ->name('contracts.download');
+        Route::resource('contracts', EmployeeContractController::class)
+            ->only(['index', 'create', 'store', 'edit', 'update']);
+
+        Route::get('employees/{employee}/documents/create', [EmployeeDocumentController::class, 'create'])
+            ->name('employee-documents.create');
+        Route::post('employees/{employee}/documents', [EmployeeDocumentController::class, 'store'])
+            ->name('employee-documents.store');
+        Route::get('employees/{employee}/documents/{employee_document}/edit', [EmployeeDocumentController::class, 'edit'])
+            ->name('employee-documents.edit');
+        Route::put('employees/{employee}/documents/{employee_document}', [EmployeeDocumentController::class, 'update'])
+            ->name('employee-documents.update');
+        Route::get('employees/{employee}/documents/{employee_document}/download', [EmployeeDocumentController::class, 'download'])
+            ->name('employee-documents.download');
+        Route::delete('employees/{employee}/documents/{employee_document}', [EmployeeDocumentController::class, 'destroy'])
+            ->name('employee-documents.destroy');
 
         Route::get('attendance/monthly', MonthlyAttendanceController::class)
             ->name('attendance.monthly');

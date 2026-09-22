@@ -99,11 +99,26 @@ class EmployeeController extends Controller
             ->paginate(15, ['*'], 'attendance_page')
             ->withQueryString();
 
+        $contracts = $employee->contracts()
+            ->with('uploader:id,name')
+            ->orderByDesc('start_date')
+            ->orderByDesc('id')
+            ->get();
+
+        $documents = $employee->documents()
+            ->with('uploader:id,name')
+            ->orderByDesc('document_date')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
+
         return view('admin.employees.show', [
             'employee' => $employee,
             'leaveRequests' => $leaveRequests,
             'approvedLeaveDays' => $approvedLeaveDays,
             'attendanceRecords' => $attendanceRecords,
+            'contracts' => $contracts,
+            'documents' => $documents,
             'attendanceMonths' => collect(range(1, 12))->mapWithKeys(fn (int $month): array => [
                 $month => now()->startOfYear()->addMonths($month - 1)->format('F'),
             ]),

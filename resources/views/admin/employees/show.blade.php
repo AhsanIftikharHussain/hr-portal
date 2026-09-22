@@ -19,7 +19,9 @@
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Emergency Contact</span>
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Attendance</span>
             <span class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700">Leave History</span>
-            @foreach (['Contracts', 'Documents', 'Onboarding', 'Offboarding'] as $futureTab)
+            <a href="#contracts" class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700 hover:bg-slate-200">Contracts</a>
+            <a href="#documents" class="rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-700 hover:bg-slate-200">Documents</a>
+            @foreach (['Onboarding', 'Offboarding'] as $futureTab)
                 <span class="cursor-not-allowed rounded-lg border border-dashed border-slate-300 px-3 py-2 text-slate-400" title="Planned for a future phase">{{ $futureTab }}</span>
             @endforeach
         </div>
@@ -59,6 +61,24 @@
                     <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Relationship</dt><dd class="mt-1 text-sm text-slate-900">{{ $employee->emergency_contact_relationship ?: 'Not provided' }}</dd></div>
                     <div><dt class="text-xs font-medium uppercase tracking-wide text-slate-500">Contact number</dt><dd class="mt-1 text-sm text-slate-900">{{ $employee->emergency_contact_number ?: 'Not provided' }}</dd></div>
                 </dl>
+            </x-card>
+
+            <x-card id="contracts" title="Contract History" class="scroll-mt-24 overflow-hidden p-0 xl:col-span-2">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4"><p class="text-sm text-slate-500">Current and historical contracts are preserved separately.</p>@if (! $employee->trashed())<a href="{{ route('admin.contracts.create', ['employee_id' => $employee->id]) }}" class="text-sm font-semibold text-portal-900 hover:underline">Add contract</a>@endif</div>
+                @if ($contracts->isEmpty())
+                    <x-empty-state title="No contracts" description="Contracts recorded for this employee will appear here." class="m-5" />
+                @else
+                    <div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Type</th><th class="px-5 py-3">Start</th><th class="px-5 py-3">End</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">File</th><th class="px-5 py-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-slate-100">@foreach ($contracts as $contract)<tr><td class="px-5 py-4 font-medium text-slate-950">{{ $contract->contract_type->label() }}</td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $contract->start_date->format('d M Y') }}</td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $contract->end_date?->format('d M Y') ?? 'Open-ended' }}</td><td class="px-5 py-4"><x-contract-status-badge :status="$contract->status" /></td><td class="px-5 py-4 text-slate-600">{{ $contract->original_filename }}</td><td class="px-5 py-4 text-right"><div class="flex justify-end gap-3"><a href="{{ route('admin.contracts.download', $contract) }}" class="font-semibold text-portal-900 hover:underline">Download</a><a href="{{ route('admin.contracts.edit', $contract) }}" class="font-semibold text-slate-700 hover:underline">Edit</a></div></td></tr>@endforeach</tbody></table></div>
+                @endif
+            </x-card>
+
+            <x-card id="documents" title="Employee Documents" class="scroll-mt-24 overflow-hidden p-0 xl:col-span-2">
+                <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4"><p class="text-sm text-slate-500">Uploaded HR records are stored privately and downloaded through authorization.</p>@if (! $employee->trashed())<a href="{{ route('admin.employee-documents.create', $employee) }}" class="text-sm font-semibold text-portal-900 hover:underline">Upload document</a>@endif</div>
+                @if ($documents->isEmpty())
+                    <x-empty-state title="No employee documents" description="Uploaded employee records will appear here." class="m-5" />
+                @else
+                    <div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Type</th><th class="px-5 py-3">Title</th><th class="px-5 py-3">Document Date</th><th class="px-5 py-3">Uploaded</th><th class="px-5 py-3">Uploaded By</th><th class="px-5 py-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-slate-100">@foreach ($documents as $document)<tr><td class="px-5 py-4 text-slate-700">{{ $document->document_type->label() }}</td><td class="px-5 py-4"><span class="font-medium text-slate-950">{{ $document->title }}</span>@if ($document->description)<span class="block text-xs text-slate-600">{{ $document->description }}</span>@endif<span class="block text-xs text-slate-500">{{ $document->original_filename }} · {{ Number::fileSize($document->file_size) }}</span></td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $document->document_date?->format('d M Y') ?? 'Not specified' }}</td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $document->created_at->format('d M Y') }}</td><td class="px-5 py-4 text-slate-600">{{ $document->uploader?->name ?? 'Former user' }}</td><td class="px-5 py-4 text-right"><div class="flex justify-end gap-3"><a href="{{ route('admin.employee-documents.download', [$employee, $document]) }}" class="font-semibold text-portal-900 hover:underline">Download</a><a href="{{ route('admin.employee-documents.edit', [$employee, $document]) }}" class="font-semibold text-slate-700 hover:underline">Edit</a><form method="POST" action="{{ route('admin.employee-documents.destroy', [$employee, $document]) }}" onsubmit="return confirm('Archive this document? The private file will be retained.')">@csrf @method('DELETE')<button type="submit" class="font-semibold text-red-700 hover:underline">Archive</button></form></div></td></tr>@endforeach</tbody></table></div>
+                @endif
             </x-card>
 
             <x-card title="Attendance History" class="overflow-hidden p-0 xl:col-span-2">

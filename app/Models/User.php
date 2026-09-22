@@ -51,6 +51,18 @@ class User extends Authenticatable
         return $this->hasMany(AttendanceRecord::class, 'corrected_by');
     }
 
+    /** @return HasMany<EmployeeContract, $this> */
+    public function uploadedContracts(): HasMany
+    {
+        return $this->hasMany(EmployeeContract::class, 'uploaded_by');
+    }
+
+    /** @return HasMany<EmployeeDocument, $this> */
+    public function uploadedEmployeeDocuments(): HasMany
+    {
+        return $this->hasMany(EmployeeDocument::class, 'uploaded_by');
+    }
+
     public function hasRole(string $slug): bool
     {
         return $this->roles()->where('slug', $slug)->exists();
