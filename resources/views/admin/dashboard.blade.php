@@ -1,22 +1,80 @@
 <x-layouts.admin title="Dashboard">
-    <div class="flex flex-col gap-2">
-        <p class="text-sm font-medium text-slate-500">Overview</p>
-        <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">Dashboard</h1>
-        <p class="text-sm text-slate-600">The administration foundation is ready. HR modules will be introduced in later phases.</p>
-    </div>
+    <div class="flex flex-col gap-8">
+        <x-page-header title="HR Dashboard" description="A current overview of employees, workforce status, and recent joiners." />
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        @foreach (['Total Employees', 'Present Today', 'On Leave', 'Pending Leave Requests'] as $metric)
-            <x-card :title="$metric">
-                <p class="text-2xl font-semibold text-slate-400">—</p>
-                <p class="mt-1 text-xs text-slate-500">Available when this module is implemented</p>
+        <section aria-labelledby="workforce-metrics-heading">
+            <h2 id="workforce-metrics-heading" class="sr-only">Workforce metrics</h2>
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                @foreach ($metrics as $metric)
+                    <a
+                        href="{{ route('admin.employees.index', $metric['filter'] ? ['employment_status' => $metric['filter']->value] : []) }}"
+                        class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"
+                    >
+                        <p class="text-sm font-medium text-slate-500">{{ $metric['label'] }}</p>
+                        <p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $metric['count'] }}</p>
+                        <p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">View employees →</p>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+            <x-card title="Employment Status Overview">
+                <div class="divide-y divide-slate-100">
+                    @foreach ($statusOverview as $item)
+                        <a href="{{ route('admin.employees.index', ['employment_status' => $item['status']->value]) }}" class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0 hover:text-slate-950">
+                            <span class="text-sm font-medium text-slate-700">{{ $item['status']->label() }}</span>
+                            <span class="min-w-9 rounded-full bg-slate-100 px-2.5 py-1 text-center text-xs font-semibold text-slate-700">{{ $item['count'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
             </x-card>
-        @endforeach
-    </div>
 
-    <x-empty-state
-        class="mt-6"
-        title="No HR modules enabled yet"
-        description="Phase 0 establishes authentication, authorization, layout, storage, and testing. Employee and HR workflows have intentionally not been started."
-    />
+            <x-card title="Active Employees by Department">
+                @if ($departments->isEmpty())
+                    <x-empty-state title="No active department counts" description="Active employees will appear here after they are assigned to active departments." />
+                @else
+                    <div class="divide-y divide-slate-100">
+                        @foreach ($departments as $department)
+                            <a href="{{ route('admin.employees.index', ['department_id' => $department->id, 'employment_status' => \App\EmploymentStatus::Active->value]) }}" class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0 hover:text-slate-950">
+                                <span class="min-w-0 truncate text-sm font-medium text-slate-700">{{ $department->name }}</span>
+                                <span class="whitespace-nowrap text-sm font-semibold text-slate-950">{{ $department->active_employees_count }} {{ Str::plural('employee', $department->active_employees_count) }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </x-card>
+        </div>
+
+        <x-card title="Recently Joined Employees" class="overflow-hidden p-0">
+            @if ($recentEmployees->isEmpty())
+                <x-empty-state title="No employees yet" description="Recently joined employees will appear after employee records are created." class="m-5" />
+            @else
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                            <tr>
+                                <th class="px-5 py-3">Employee</th>
+                                <th class="px-5 py-3">Code</th>
+                                <th class="px-5 py-3">Designation</th>
+                                <th class="px-5 py-3">Department</th>
+                                <th class="px-5 py-3">Joining Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            @foreach ($recentEmployees as $employee)
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-5 py-4"><a href="{{ route('admin.employees.show', $employee) }}" class="font-semibold text-slate-950 hover:underline">{{ $employee->full_name }}</a></td>
+                                    <td class="whitespace-nowrap px-5 py-4 font-mono text-xs text-slate-600">{{ $employee->employee_code }}</td>
+                                    <td class="px-5 py-4 text-slate-600">{{ $employee->jobTitle->name }}</td>
+                                    <td class="px-5 py-4 text-slate-600">{{ $employee->department->name }}</td>
+                                    <td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $employee->joining_date->format('d M Y') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </x-card>
+    </div>
 </x-layouts.admin>

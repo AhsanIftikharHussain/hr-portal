@@ -24,7 +24,7 @@ class DashboardAccessTest extends TestCase
         $this->actingAs($user)
             ->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('The administration foundation is ready.');
+            ->assertSee('HR Dashboard');
     }
 
     public function test_employee_is_forbidden_from_admin_dashboard(): void
