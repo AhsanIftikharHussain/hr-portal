@@ -23,11 +23,13 @@ use App\Http\Controllers\Admin\MonthlyAttendanceController;
 use App\Http\Controllers\Admin\PolicyCategoryController;
 use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\RejectedLeaveRequestController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\UserPasswordController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
     ->name('admin.')
-    ->middleware(['auth', 'admin'])
+    ->middleware(['auth', 'active', 'admin'])
     ->group(function (): void {
         Route::get('/', DashboardController::class)->name('dashboard');
 
@@ -53,6 +55,12 @@ Route::prefix('admin')
         Route::delete('holidays/{holiday}/inactive', [InactiveHolidayController::class, 'destroy'])
             ->name('holidays.reactivate');
         Route::resource('holidays', HolidayController::class)->except(['show', 'destroy']);
+
+        Route::get('users/{user}/password', [UserPasswordController::class, 'edit'])
+            ->name('users.password.edit');
+        Route::put('users/{user}/password', [UserPasswordController::class, 'update'])
+            ->name('users.password.update');
+        Route::resource('users', UserController::class)->only(['index', 'create', 'store', 'edit', 'update']);
 
         Route::get('employees/{employee}/documents/create', [EmployeeDocumentController::class, 'create'])
             ->name('employee-documents.create');

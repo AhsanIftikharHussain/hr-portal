@@ -20,6 +20,12 @@ class Role extends Model
 
     public const EMPLOYEE = 'employee';
 
+    /** @return array<int, string> */
+    public static function assignableSlugs(): array
+    {
+        return [self::HR_ADMIN, self::EMPLOYEE];
+    }
+
     /**
      * @return BelongsToMany<User, $this>
      */

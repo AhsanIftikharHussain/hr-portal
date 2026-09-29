@@ -16,7 +16,7 @@
                 :class="mobileNavigationOpen ? 'translate-x-0' : '-translate-x-full'"
             >
                 <div class="flex h-16 items-center justify-between border-b border-slate-200 px-5">
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 font-semibold">
+                    <a href="{{ auth()->user()->can('access-admin') ? route('admin.dashboard') : route('profile.edit') }}" class="flex items-center gap-3 font-semibold">
                         <span class="flex size-9 items-center justify-center rounded-lg bg-portal-900 text-sm text-white">AH</span>
                         <span>HR Portal</span>
                     </a>
@@ -24,26 +24,33 @@
                 </div>
 
                 <nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-4" aria-label="Primary navigation">
-                    <x-nav-item :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">Dashboard</x-nav-item>
-                    <x-nav-item :href="route('admin.employees.index')" :active="request()->routeIs('admin.employees.*')">Employees</x-nav-item>
-                    <x-nav-item :href="route('admin.attendance.index')" :active="request()->routeIs('admin.attendance.*')">Attendance</x-nav-item>
-                    <x-nav-item :href="route('admin.leave-requests.index')" :active="request()->routeIs('admin.leave-requests.*')">Leave Management</x-nav-item>
-                    <x-nav-item :href="route('admin.contracts.index')" :active="request()->routeIs('admin.contracts.*', 'admin.employee-documents.*')">Contracts &amp; Documents</x-nav-item>
-                    <x-nav-item :href="route('admin.policies.index')" :active="request()->routeIs('admin.policies.*', 'admin.policy-categories.*')">Office Policies</x-nav-item>
-                    <x-nav-item :href="route('admin.holidays.calendar')" :active="request()->routeIs('admin.holidays.*')">Holiday Calendar</x-nav-item>
-                    <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Settings</div>
-                    <x-nav-item :href="route('admin.departments.index')" :active="request()->routeIs('admin.departments.*')">Departments</x-nav-item>
-                    <x-nav-item :href="route('admin.job-titles.index')" :active="request()->routeIs('admin.job-titles.*')">Designations</x-nav-item>
-                    <x-nav-item :href="route('admin.leave-types.index')" :active="request()->routeIs('admin.leave-types.*')">Leave Types</x-nav-item>
+                    @can('access-admin')
+                        <x-nav-item :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">Dashboard</x-nav-item>
+                        <x-nav-item :href="route('admin.employees.index')" :active="request()->routeIs('admin.employees.*')">Employees</x-nav-item>
+                        <x-nav-item :href="route('admin.attendance.index')" :active="request()->routeIs('admin.attendance.*')">Attendance</x-nav-item>
+                        <x-nav-item :href="route('admin.leave-requests.index')" :active="request()->routeIs('admin.leave-requests.*')">Leave Management</x-nav-item>
+                        <x-nav-item :href="route('admin.contracts.index')" :active="request()->routeIs('admin.contracts.*', 'admin.employee-documents.*')">Contracts &amp; Documents</x-nav-item>
+                        <x-nav-item :href="route('admin.policies.index')" :active="request()->routeIs('admin.policies.*', 'admin.policy-categories.*')">Office Policies</x-nav-item>
+                        <x-nav-item :href="route('admin.holidays.calendar')" :active="request()->routeIs('admin.holidays.*')">Holiday Calendar</x-nav-item>
+                        <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Settings</div>
+                        @can('viewAny', App\Models\User::class)
+                            <x-nav-item :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">User Management</x-nav-item>
+                        @endcan
+                        <x-nav-item :href="route('admin.departments.index')" :active="request()->routeIs('admin.departments.*')">Departments</x-nav-item>
+                        <x-nav-item :href="route('admin.job-titles.index')" :active="request()->routeIs('admin.job-titles.*')">Designations</x-nav-item>
+                        <x-nav-item :href="route('admin.leave-types.index')" :active="request()->routeIs('admin.leave-types.*')">Leave Types</x-nav-item>
+                    @endcan
+                    <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Account</div>
+                    <x-nav-item :href="route('profile.edit')" :active="request()->routeIs('profile.*')">My Profile</x-nav-item>
                 </nav>
 
-                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">HR Administration</div>
+                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">{{ auth()->user()->can('access-admin') ? 'HR Administration' : 'Employee Account' }}</div>
             </aside>
 
             <div class="min-w-0 flex-1">
                 <header class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
                     <button type="button" class="rounded-md p-2 text-slate-600 hover:bg-slate-100 lg:hidden" @click="mobileNavigationOpen = true" aria-label="Open navigation">☰</button>
-                    <div class="hidden text-sm text-slate-500 sm:block">HR Administration</div>
+                    <div class="hidden text-sm text-slate-500 sm:block">{{ auth()->user()->can('access-admin') ? 'HR Administration' : 'My Account' }}</div>
 
                     <div class="relative">
                         <button type="button" class="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-slate-100" @click="userMenuOpen = !userMenuOpen" @click.outside="userMenuOpen = false" :aria-expanded="userMenuOpen">
@@ -55,6 +62,7 @@
                         </button>
 
                         <div x-cloak x-show="userMenuOpen" x-transition class="absolute right-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+                            <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">My Profile</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100">Sign out</button>
