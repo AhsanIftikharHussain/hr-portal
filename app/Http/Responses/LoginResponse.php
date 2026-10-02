@@ -8,6 +8,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class LoginResponse implements LoginResponseContract
 {
+    public static function redirectPath(Request $request): string
+    {
+        return $request->user()->can('access-admin')
+            ? route('admin.dashboard')
+            : route('profile.edit');
+    }
+
     public function toResponse($request): Response
     {
         /** @var Request $request */
@@ -15,10 +22,6 @@ class LoginResponse implements LoginResponseContract
             return response()->json(['two_factor' => false]);
         }
 
-        $destination = $request->user()->can('access-admin')
-            ? route('admin.dashboard')
-            : route('profile.edit');
-
-        return redirect()->intended($destination);
+        return redirect()->intended(self::redirectPath($request));
     }
 }
