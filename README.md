@@ -1,4 +1,4 @@
-# AH HR Portal
+# CP HR Portal
 
 Private internal HR administration application built with Laravel 13, PHP 8.3+, Blade, Tailwind CSS, Alpine.js, and a MySQL-compatible database.
 
@@ -25,7 +25,7 @@ npm install
 Create a local database named `hr_portal`, then review these local `.env` values:
 
 ```dotenv
-APP_NAME="AH HR Portal"
+APP_NAME="CP HR Portal"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000

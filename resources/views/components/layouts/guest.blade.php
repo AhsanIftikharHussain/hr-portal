@@ -11,7 +11,7 @@
         <main class="flex min-h-screen items-center justify-center px-4 py-12 sm:px-6">
             <div class="w-full max-w-md">
                 <div class="mb-8 text-center">
-                    <div class="mx-auto flex size-12 items-center justify-center rounded-xl bg-portal-900 text-lg font-semibold text-white">AH</div>
+                    <div class="mx-auto flex size-12 items-center justify-center rounded-xl bg-portal-900 text-lg font-semibold text-white">CP</div>
                     <h1 class="mt-4 text-2xl font-semibold tracking-tight">{{ config('app.name') }}</h1>
                     <p class="mt-2 text-sm text-slate-600">Private internal access</p>
                 </div>

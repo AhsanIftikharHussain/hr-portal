@@ -17,8 +17,8 @@
             >
                 <div class="flex h-16 items-center justify-between border-b border-slate-200 px-5">
                     <a href="{{ auth()->user()->can('access-admin') ? route('admin.dashboard') : route('profile.edit') }}" class="flex items-center gap-3 font-semibold">
-                        <span class="flex size-9 items-center justify-center rounded-lg bg-portal-900 text-sm text-white">AH</span>
-                        <span>HR Portal</span>
+                        <span class="flex size-9 items-center justify-center rounded-lg bg-portal-900 text-sm text-white">CP</span>
+                        <span>{{ config('app.name') }}</span>
                     </a>
                     <button type="button" class="rounded-md p-2 text-slate-500 hover:bg-slate-100 lg:hidden" @click="mobileNavigationOpen = false" aria-label="Close navigation">✕</button>
                 </div>
