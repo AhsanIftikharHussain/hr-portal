@@ -58,7 +58,8 @@ class LeaveRequestManagementTest extends TestCase
         ]);
 
         $leaveRequest = $employee->leaveRequests()->sole();
-        $response->assertRedirectToRoute('admin.leave-requests.show', $leaveRequest);
+        $response->assertRedirectToRoute('admin.leave-requests.index')
+            ->assertSessionHas('success', 'Leave request created successfully.');
         $this->assertSame(4, $leaveRequest->duration_days);
         $this->assertSame(LeaveRequestStatus::Pending, $leaveRequest->status);
         $this->assertNull($leaveRequest->reviewed_by);

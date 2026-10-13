@@ -36,7 +36,7 @@ class PolicyCategoryController extends Controller
             'is_active' => true,
         ]);
 
-        return redirect()->route('admin.policy-categories.index')->with('status', 'Policy category created.');
+        return redirect()->route('admin.policy-categories.index')->with('success', 'Policy category created successfully.');
     }
 
     public function edit(PolicyCategory $policyCategory): View
@@ -53,6 +53,6 @@ class PolicyCategoryController extends Controller
             'description' => $request->string('description')->trim()->toString() ?: null,
         ]);
 
-        return redirect()->route('admin.policy-categories.index')->with('status', 'Policy category updated.');
+        return redirect()->route('admin.policy-categories.index')->with('success', 'Policy category updated successfully.');
     }
 }

@@ -32,7 +32,7 @@ class JobTitleController extends Controller
     {
         JobTitle::query()->create(['name' => $request->string('name')->trim()->toString(), 'is_active' => true]);
 
-        return redirect()->route('admin.job-titles.index')->with('status', 'Designation created.');
+        return redirect()->route('admin.job-titles.index')->with('success', 'Job title created successfully.');
     }
 
     public function edit(JobTitle $jobTitle): View
@@ -46,6 +46,6 @@ class JobTitleController extends Controller
     {
         $jobTitle->update(['name' => $request->string('name')->trim()->toString()]);
 
-        return redirect()->route('admin.job-titles.index')->with('status', 'Designation updated.');
+        return redirect()->route('admin.job-titles.index')->with('success', 'Job title updated successfully.');
     }
 }

@@ -25,10 +25,12 @@ class JobTitleManagementTest extends TestCase
         $user = User::factory()->withRole(Role::HR_ADMIN)->create();
 
         $this->actingAs($user)->post(route('admin.job-titles.store'), ['name' => 'Fictional Specialist'])
-            ->assertRedirectToRoute('admin.job-titles.index');
+            ->assertRedirectToRoute('admin.job-titles.index')
+            ->assertSessionHas('success', 'Job title created successfully.');
         $jobTitle = JobTitle::query()->where('name', 'Fictional Specialist')->sole();
         $this->actingAs($user)->put(route('admin.job-titles.update', $jobTitle), ['name' => 'Fictional Senior Specialist'])
-            ->assertRedirectToRoute('admin.job-titles.index');
+            ->assertRedirectToRoute('admin.job-titles.index')
+            ->assertSessionHas('success', 'Job title updated successfully.');
         $this->assertDatabaseHas('job_titles', ['id' => $jobTitle->id, 'name' => 'Fictional Senior Specialist']);
     }
 

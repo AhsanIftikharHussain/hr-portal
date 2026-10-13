@@ -25,7 +25,8 @@ class HolidayManagementTest extends TestCase
             'day_portion' => HolidayDayPortion::FirstHalf->value,
             'description' => 'Office closes after the first half.',
             'is_active' => false,
-        ])->assertRedirectToRoute('admin.holidays.index', ['year' => 2026]);
+        ])->assertRedirectToRoute('admin.holidays.index', ['year' => 2026])
+            ->assertSessionHas('success', 'Holiday created successfully.');
         $holiday = Holiday::query()->sole();
         $this->assertTrue($holiday->is_active);
 
@@ -35,7 +36,8 @@ class HolidayManagementTest extends TestCase
             'type' => HolidayType::CompanyHoliday->value,
             'day_portion' => HolidayDayPortion::SecondHalf->value,
             'description' => 'Second-half closure.',
-        ])->assertRedirectToRoute('admin.holidays.index', ['year' => 2026]);
+        ])->assertRedirectToRoute('admin.holidays.index', ['year' => 2026])
+            ->assertSessionHas('success', 'Holiday updated successfully.');
 
         $this->assertDatabaseHas('holidays', ['id' => $holiday->id, 'name' => 'Company Anniversary', 'day_portion' => 'second-half']);
     }

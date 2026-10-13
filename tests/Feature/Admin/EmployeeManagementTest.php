@@ -60,8 +60,11 @@ class EmployeeManagementTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('admin.employees.store'), $this->validPayload($department, $jobTitle));
 
-        $employee = Employee::query()->sole();
-        $response->assertRedirectToRoute('admin.employees.show', $employee);
+        $response->assertRedirectToRoute('admin.employees.index')
+            ->assertSessionHas('success', 'Employee created successfully.');
+        $this->actingAs($user)->get(route('admin.employees.index'))
+            ->assertOk()
+            ->assertSee('Employee created successfully.');
         $this->assertDatabaseHas('employees', [
             'employee_code' => 'EMP-9001',
             'full_name' => 'Fictional Employee',
@@ -93,8 +96,13 @@ class EmployeeManagementTest extends TestCase
         $user = User::factory()->withRole(Role::HR_ADMIN)->create();
         $employee = Employee::factory()->create(['employee_code' => 'EMP-9001']);
 
-        $this->actingAs($user)->post(route('admin.employees.store'), $this->validPayload($employee->department, $employee->jobTitle))
-            ->assertInvalid(['employee_code']);
+        $this->actingAs($user)
+            ->from(route('admin.employees.create'))
+            ->post(route('admin.employees.store'), $this->validPayload($employee->department, $employee->jobTitle))
+            ->assertRedirectToRoute('admin.employees.create')
+            ->assertInvalid(['employee_code'])
+            ->assertSessionHasInput('employee_code', 'EMP-9001')
+            ->assertSessionMissing('success');
         $this->assertDatabaseCount('employees', 1);
     }
 
@@ -120,7 +128,8 @@ class EmployeeManagementTest extends TestCase
         $payload['full_name'] = 'Updated Fictional Employee';
 
         $this->actingAs($user)->put(route('admin.employees.update', $employee), $payload)
-            ->assertRedirectToRoute('admin.employees.show', $employee);
+            ->assertRedirectToRoute('admin.employees.index')
+            ->assertSessionHas('success', 'Employee updated successfully.');
         $this->assertDatabaseHas('employees', ['id' => $employee->id, 'full_name' => 'Updated Fictional Employee']);
     }
 

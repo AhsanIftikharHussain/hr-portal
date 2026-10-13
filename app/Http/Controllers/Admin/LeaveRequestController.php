@@ -77,15 +77,15 @@ class LeaveRequestController extends Controller
         $startDate = CarbonImmutable::parse($request->string('start_date')->toString());
         $endDate = CarbonImmutable::parse($request->string('end_date')->toString());
 
-        $leaveRequest = LeaveRequest::query()->create([
+        LeaveRequest::query()->create([
             ...$request->safe()->only(['employee_id', 'leave_type_id', 'start_date', 'end_date', 'reason']),
             'duration_days' => $durationCalculator->calendarDays($startDate, $endDate),
             'status' => LeaveRequestStatus::Pending,
             'requested_at' => now(),
         ]);
 
-        return redirect()->route('admin.leave-requests.show', $leaveRequest)
-            ->with('status', 'Leave request created successfully.');
+        return redirect()->route('admin.leave-requests.index')
+            ->with('success', 'Leave request created successfully.');
     }
 
     public function show(LeaveRequest $leaveRequest): View

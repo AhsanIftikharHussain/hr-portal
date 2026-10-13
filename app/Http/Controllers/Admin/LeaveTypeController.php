@@ -38,7 +38,7 @@ class LeaveTypeController extends Controller
             'is_paid' => $request->boolean('is_paid'),
         ]);
 
-        return redirect()->route('admin.leave-types.index')->with('status', 'Leave type created.');
+        return redirect()->route('admin.leave-types.index')->with('success', 'Leave type created successfully.');
     }
 
     public function edit(LeaveType $leaveType): View
@@ -57,6 +57,6 @@ class LeaveTypeController extends Controller
             'is_paid' => $request->boolean('is_paid'),
         ]);
 
-        return redirect()->route('admin.leave-types.index')->with('status', 'Leave type updated.');
+        return redirect()->route('admin.leave-types.index')->with('success', 'Leave type updated successfully.');
     }
 }

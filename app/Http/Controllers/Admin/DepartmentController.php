@@ -33,7 +33,7 @@ class DepartmentController extends Controller
         $name = $request->string('name')->trim()->toString();
         Department::query()->create(['name' => $name, 'is_active' => true]);
 
-        return redirect()->route('admin.departments.index')->with('status', 'Department created.');
+        return redirect()->route('admin.departments.index')->with('success', 'Department created successfully.');
     }
 
     public function edit(Department $department): View
@@ -48,6 +48,6 @@ class DepartmentController extends Controller
         $name = $request->string('name')->trim()->toString();
         $department->update(['name' => $name]);
 
-        return redirect()->route('admin.departments.index')->with('status', 'Department updated.');
+        return redirect()->route('admin.departments.index')->with('success', 'Department updated successfully.');
     }
 }

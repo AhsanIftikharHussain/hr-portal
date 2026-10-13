@@ -31,7 +31,8 @@ class AttendanceCorrectionTest extends TestCase
             'check_in_at' => '2026-09-21T10:00',
             'check_out_at' => '2026-09-21T18:00',
             'notes' => 'Corrected arrival time.',
-        ])->assertRedirectToRoute('admin.attendance.index', ['date' => '2026-09-21']);
+        ])->assertRedirectToRoute('admin.attendance.index', ['date' => '2026-09-21'])
+            ->assertSessionHas('success', 'Attendance record corrected successfully.');
 
         $record->refresh();
         $this->assertSame(AttendanceStatus::Late, $record->status);

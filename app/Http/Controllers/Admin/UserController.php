@@ -77,7 +77,7 @@ class UserController extends Controller
             $user->roles()->sync($this->roleIds($validated['roles']));
         });
 
-        return redirect()->route('admin.users.index')->with('status', 'User account created.');
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
 
     public function edit(User $user): View
@@ -109,7 +109,7 @@ class UserController extends Controller
             }
         });
 
-        return redirect()->route('admin.users.index')->with('status', 'User account updated.');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
     /** @return array<string, string> */

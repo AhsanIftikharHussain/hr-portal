@@ -62,7 +62,7 @@ class HolidayController extends Controller
         ]);
 
         return redirect()->route('admin.holidays.index', ['year' => $request->date('holiday_date')->year])
-            ->with('status', 'Holiday created.');
+            ->with('success', 'Holiday created successfully.');
     }
 
     public function edit(Holiday $holiday): View
@@ -77,7 +77,7 @@ class HolidayController extends Controller
         $holiday->update($request->safe()->only(['name', 'holiday_date', 'type', 'day_portion', 'description']));
 
         return redirect()->route('admin.holidays.index', ['year' => $holiday->holiday_date->year])
-            ->with('status', 'Holiday updated.');
+            ->with('success', 'Holiday updated successfully.');
     }
 
     /** @return array<string, mixed> */

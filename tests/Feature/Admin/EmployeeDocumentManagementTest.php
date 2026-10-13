@@ -33,7 +33,8 @@ class EmployeeDocumentManagementTest extends TestCase
         ]);
 
         $document = EmployeeDocument::query()->sole();
-        $response->assertRedirect(route('admin.employees.show', $employee).'#documents');
+        $response->assertRedirect(route('admin.employees.show', $employee).'#documents')
+            ->assertSessionHas('success', 'Employee document uploaded successfully.');
         $this->assertSame($employee->id, $document->employee_id);
         $this->assertSame($user->id, $document->uploaded_by);
         $this->assertSame('candidate-cv.pdf', $document->original_filename);
@@ -132,7 +133,8 @@ class EmployeeDocumentManagementTest extends TestCase
             'document_date' => '2026-09-22',
             'document_file' => UploadedFile::fake()->create('employment-letter.pdf', 80, 'application/pdf'),
             'employee_id' => Employee::factory()->create()->id,
-        ])->assertRedirect(route('admin.employees.show', $employee).'#documents');
+        ])->assertRedirect(route('admin.employees.show', $employee).'#documents')
+            ->assertSessionHas('success', 'Employee document updated successfully.');
 
         $document->refresh();
         $this->assertSame($employee->id, $document->employee_id);

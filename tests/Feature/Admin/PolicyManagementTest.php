@@ -30,7 +30,8 @@ class PolicyManagementTest extends TestCase
         ]);
 
         $policy = Policy::query()->sole();
-        $response->assertRedirectToRoute('admin.policies.show', $policy);
+        $response->assertRedirectToRoute('admin.policies.index')
+            ->assertSessionHas('success', 'Policy created successfully.');
         $this->assertSame(PolicyStatus::Draft, $policy->status);
         $this->assertSame($user->id, $policy->created_by);
         $this->assertSame($user->id, $policy->updated_by);
@@ -46,7 +47,8 @@ class PolicyManagementTest extends TestCase
         $this->actingAs($user)->put(route('admin.policies.update', $policy), $this->payload($policy, [
             'status' => PolicyStatus::Published->value,
             'effective_date' => '2026-10-01',
-        ]))->assertRedirectToRoute('admin.policies.show', $policy);
+        ]))->assertRedirectToRoute('admin.policies.index')
+            ->assertSessionHas('success', 'Policy updated successfully.');
 
         $policy->refresh();
         $this->assertSame(PolicyStatus::Published, $policy->status);
@@ -76,7 +78,8 @@ class PolicyManagementTest extends TestCase
 
         $this->actingAs($user)->put(route('admin.policies.update', $policy), $this->payload($policy, [
             'status' => PolicyStatus::Archived->value,
-        ]))->assertRedirectToRoute('admin.policies.show', $policy);
+        ]))->assertRedirectToRoute('admin.policies.index')
+            ->assertSessionHas('success', 'Policy updated successfully.');
 
         $policy->refresh();
         $this->assertSame(PolicyStatus::Archived, $policy->status);

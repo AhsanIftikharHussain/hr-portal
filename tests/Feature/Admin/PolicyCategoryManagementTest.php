@@ -21,14 +21,16 @@ class PolicyCategoryManagementTest extends TestCase
             'name' => 'Remote Work',
             'description' => 'Rules for distributed work.',
             'is_active' => false,
-        ])->assertRedirectToRoute('admin.policy-categories.index');
+        ])->assertRedirectToRoute('admin.policy-categories.index')
+            ->assertSessionHas('success', 'Policy category created successfully.');
         $category = PolicyCategory::query()->where('name', 'Remote Work')->sole();
         $this->assertTrue($category->is_active);
 
         $this->actingAs($user)->put(route('admin.policy-categories.update', $category), [
             'name' => 'Flexible Work',
             'description' => 'Updated description.',
-        ])->assertRedirectToRoute('admin.policy-categories.index');
+        ])->assertRedirectToRoute('admin.policy-categories.index')
+            ->assertSessionHas('success', 'Policy category updated successfully.');
 
         $this->assertDatabaseHas('policy_categories', ['id' => $category->id, 'name' => 'Flexible Work']);
     }

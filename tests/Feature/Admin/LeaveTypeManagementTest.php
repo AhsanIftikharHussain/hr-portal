@@ -29,7 +29,8 @@ class LeaveTypeManagementTest extends TestCase
             'code' => 'study-leave',
             'is_paid' => '0',
             'requires_attachment' => '1',
-        ])->assertRedirectToRoute('admin.leave-types.index');
+        ])->assertRedirectToRoute('admin.leave-types.index')
+            ->assertSessionHas('success', 'Leave type created successfully.');
         $leaveType = LeaveType::query()->where('code', 'study-leave')->sole();
 
         $this->actingAs($user)->put(route('admin.leave-types.update', $leaveType), [
@@ -37,7 +38,8 @@ class LeaveTypeManagementTest extends TestCase
             'code' => 'education-leave',
             'is_paid' => '1',
             'requires_attachment' => '0',
-        ])->assertRedirectToRoute('admin.leave-types.index');
+        ])->assertRedirectToRoute('admin.leave-types.index')
+            ->assertSessionHas('success', 'Leave type updated successfully.');
 
         $this->assertDatabaseHas('leave_types', [
             'id' => $leaveType->id,

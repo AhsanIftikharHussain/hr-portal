@@ -66,10 +66,10 @@ class EmployeeController extends Controller
 
     public function store(StoreEmployeeRequest $request): RedirectResponse
     {
-        $employee = Employee::query()->create($request->validated());
+        Employee::query()->create($request->validated());
 
-        return redirect()->route('admin.employees.show', $employee)
-            ->with('status', 'Employee created successfully.');
+        return redirect()->route('admin.employees.index')
+            ->with('success', 'Employee created successfully.');
     }
 
     public function show(Request $request, Employee $employee): View
@@ -136,8 +136,8 @@ class EmployeeController extends Controller
     {
         $employee->update($request->validated());
 
-        return redirect()->route('admin.employees.show', $employee)
-            ->with('status', 'Employee updated successfully.');
+        return redirect()->route('admin.employees.index')
+            ->with('success', 'Employee updated successfully.');
     }
 
     /** @return array<string, mixed> */

@@ -49,7 +49,7 @@ class EmployeeDocumentController extends Controller
         }
 
         return redirect()->to(route('admin.employees.show', $employee).'#documents')
-            ->with('status', 'Employee document uploaded.');
+            ->with('success', 'Employee document uploaded successfully.');
     }
 
     public function edit(Employee $employee, EmployeeDocument $employeeDocument): View
@@ -95,7 +95,7 @@ class EmployeeDocumentController extends Controller
         }
 
         return redirect()->to(route('admin.employees.show', $employee).'#documents')
-            ->with('status', 'Employee document updated.');
+            ->with('success', 'Employee document updated successfully.');
     }
 
     public function download(Employee $employee, EmployeeDocument $employeeDocument): StreamedResponse

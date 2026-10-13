@@ -38,7 +38,8 @@ class EmployeeContractManagementTest extends TestCase
         ]);
 
         $contract = EmployeeContract::query()->sole();
-        $response->assertRedirectToRoute('admin.contracts.index');
+        $response->assertRedirectToRoute('admin.contracts.index')
+            ->assertSessionHas('success', 'Employee contract created successfully.');
         $this->assertSame($employee->id, $contract->employee_id);
         $this->assertSame($user->id, $contract->uploaded_by);
         $this->assertSame('signed-contract.pdf', $contract->original_filename);
@@ -166,7 +167,8 @@ class EmployeeContractManagementTest extends TestCase
             'notes' => 'Updated metadata.',
             'contract_file' => UploadedFile::fake()->create('replacement.pdf', 120, 'application/pdf'),
             'employee_id' => Employee::factory()->create()->id,
-        ])->assertRedirectToRoute('admin.contracts.index');
+        ])->assertRedirectToRoute('admin.contracts.index')
+            ->assertSessionHas('success', 'Employee contract updated successfully.');
 
         $contract->refresh();
         $this->assertSame($employee->id, $contract->employee_id);

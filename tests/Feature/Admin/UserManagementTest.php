@@ -82,7 +82,8 @@ class UserManagementTest extends TestCase
             'password' => 'SecurePassword123!',
             'password_confirmation' => 'SecurePassword123!',
             'is_active' => '1',
-        ])->assertRedirectToRoute('admin.users.index');
+        ])->assertRedirectToRoute('admin.users.index')
+            ->assertSessionHas('success', 'User created successfully.');
 
         $createdUser = User::query()->where('email', 'new.hr@example.test')->sole();
         $this->assertTrue($createdUser->is_active);
@@ -153,7 +154,8 @@ class UserManagementTest extends TestCase
             'email' => 'updated.account@example.test',
             'roles' => [Role::HR_ADMIN, Role::EMPLOYEE],
             'is_active' => '0',
-        ])->assertRedirectToRoute('admin.users.index');
+        ])->assertRedirectToRoute('admin.users.index')
+            ->assertSessionHas('success', 'User updated successfully.');
 
         $account->refresh();
         $this->assertSame('Updated Account', $account->name);

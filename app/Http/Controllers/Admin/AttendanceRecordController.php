@@ -109,7 +109,7 @@ class AttendanceRecordController extends Controller
         }
 
         return redirect()->route('admin.attendance.index', ['date' => $attendanceRecord->attendance_date->toDateString()])
-            ->with('status', 'Attendance record created.');
+            ->with('success', 'Attendance record created successfully.');
     }
 
     public function edit(AttendanceRecord $attendanceRecord): View
@@ -147,6 +147,6 @@ class AttendanceRecordController extends Controller
         }
 
         return redirect()->route('admin.attendance.index', ['date' => $attendanceRecord->attendance_date->toDateString()])
-            ->with('status', 'Attendance record corrected.');
+            ->with('success', 'Attendance record corrected successfully.');
     }
 }

@@ -32,7 +32,8 @@ class AttendanceRecordManagementTest extends TestCase
         ]);
 
         $record = AttendanceRecord::query()->sole();
-        $response->assertRedirectToRoute('admin.attendance.index', ['date' => '2026-09-22']);
+        $response->assertRedirectToRoute('admin.attendance.index', ['date' => '2026-09-22'])
+            ->assertSessionHas('success', 'Attendance record created successfully.');
         $this->assertSame(AttendanceSource::HrManual, $record->source);
         $this->assertSame($user->id, $record->recorded_by);
         $this->assertSame(510, $record->workingDurationMinutes());

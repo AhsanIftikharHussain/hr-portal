@@ -57,14 +57,14 @@ class PolicyController extends Controller
 
     public function store(StorePolicyRequest $request): RedirectResponse
     {
-        $policy = Policy::query()->create([
+        Policy::query()->create([
             ...$request->safe()->only(['policy_category_id', 'title', 'summary', 'content', 'effective_date']),
             'status' => PolicyStatus::Draft,
             'created_by' => $request->user()->id,
             'updated_by' => $request->user()->id,
         ]);
 
-        return redirect()->route('admin.policies.show', $policy)->with('status', 'Draft policy created.');
+        return redirect()->route('admin.policies.index')->with('success', 'Policy created successfully.');
     }
 
     public function show(Policy $policy): View
@@ -98,7 +98,7 @@ class PolicyController extends Controller
             'updated_by' => $request->user()->id,
         ]);
 
-        return redirect()->route('admin.policies.show', $policy)->with('status', 'Policy updated.');
+        return redirect()->route('admin.policies.index')->with('success', 'Policy updated successfully.');
     }
 
     /** @return array<string, mixed> */

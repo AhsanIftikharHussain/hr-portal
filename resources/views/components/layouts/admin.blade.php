@@ -73,7 +73,9 @@
 
                 <main class="p-4 sm:p-6 lg:p-8">
                     <div class="mx-auto max-w-7xl">
-                        @if (session('status'))
+                        @if (session('success'))
+                            <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
+                        @elseif (session('status'))
                             <x-alert type="success" class="mb-6">{{ session('status') }}</x-alert>
                         @endif
                         {{ $slot }}

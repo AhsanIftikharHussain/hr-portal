@@ -95,7 +95,7 @@ class EmployeeContractController extends Controller
         $metadata = $this->privateFiles->store($request->file('contract_file'), $employee, 'contracts');
 
         try {
-            $contract = EmployeeContract::query()->create([
+            EmployeeContract::query()->create([
                 ...$request->safe()->only([
                     'employee_id', 'contract_type', 'start_date', 'end_date', 'status', 'notice_period', 'notes',
                 ]),
@@ -109,7 +109,7 @@ class EmployeeContractController extends Controller
         }
 
         return redirect()->route('admin.contracts.index')
-            ->with('status', "Contract for {$contract->employee->full_name} added.");
+            ->with('success', 'Employee contract created successfully.');
     }
 
     public function edit(EmployeeContract $contract): View
@@ -150,7 +150,7 @@ class EmployeeContractController extends Controller
             $this->privateFiles->delete($oldPath, $contract->employee, 'contracts');
         }
 
-        return redirect()->route('admin.contracts.index')->with('status', 'Contract updated.');
+        return redirect()->route('admin.contracts.index')->with('success', 'Employee contract updated successfully.');
     }
 
     public function download(EmployeeContract $contract): StreamedResponse

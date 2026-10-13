@@ -25,10 +25,12 @@ class DepartmentManagementTest extends TestCase
         $user = User::factory()->withRole(Role::HR_ADMIN)->create();
 
         $this->actingAs($user)->post(route('admin.departments.store'), ['name' => 'Fictional Operations'])
-            ->assertRedirectToRoute('admin.departments.index');
+            ->assertRedirectToRoute('admin.departments.index')
+            ->assertSessionHas('success', 'Department created successfully.');
         $department = Department::query()->where('name', 'Fictional Operations')->sole();
         $this->actingAs($user)->put(route('admin.departments.update', $department), ['name' => 'Fictional Business Operations'])
-            ->assertRedirectToRoute('admin.departments.index');
+            ->assertRedirectToRoute('admin.departments.index')
+            ->assertSessionHas('success', 'Department updated successfully.');
         $this->assertDatabaseHas('departments', ['id' => $department->id, 'name' => 'Fictional Business Operations']);
     }
 
