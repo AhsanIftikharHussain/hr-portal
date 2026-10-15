@@ -77,7 +77,44 @@
                 @if ($documents->isEmpty())
                     <x-empty-state title="No employee documents" description="Uploaded employee records will appear here." class="m-5" />
                 @else
-                    <div class="overflow-x-auto"><table class="min-w-full divide-y divide-slate-200 text-left text-sm"><thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500"><tr><th class="px-5 py-3">Type</th><th class="px-5 py-3">Title</th><th class="px-5 py-3">Document Date</th><th class="px-5 py-3">Uploaded</th><th class="px-5 py-3">Uploaded By</th><th class="px-5 py-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-slate-100">@foreach ($documents as $document)<tr><td class="px-5 py-4 text-slate-700">{{ $document->document_type->label() }}</td><td class="px-5 py-4"><span class="font-medium text-slate-950">{{ $document->title }}</span>@if ($document->description)<span class="block text-xs text-slate-600">{{ $document->description }}</span>@endif<span class="block text-xs text-slate-500">{{ $document->original_filename }} · {{ Number::fileSize($document->file_size) }}</span></td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $document->document_date?->format('d M Y') ?? 'Not specified' }}</td><td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $document->created_at->format('d M Y') }}</td><td class="px-5 py-4 text-slate-600">{{ $document->uploader?->name ?? 'Former user' }}</td><td class="px-5 py-4 text-right"><div class="flex justify-end gap-3"><a href="{{ route('admin.employee-documents.download', [$employee, $document]) }}" class="font-semibold text-portal-900 hover:underline">Download</a><a href="{{ route('admin.employee-documents.edit', [$employee, $document]) }}" class="font-semibold text-slate-700 hover:underline">Edit</a><form method="POST" action="{{ route('admin.employee-documents.destroy', [$employee, $document]) }}" onsubmit="return confirm('Archive this document? The private file will be retained.')">@csrf @method('DELETE')<button type="submit" class="font-semibold text-red-700 hover:underline">Archive</button></form></div></td></tr>@endforeach</tbody></table></div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                                <tr><th class="px-5 py-3">Type</th><th class="px-5 py-3">Title</th><th class="px-5 py-3">Document Date</th><th class="px-5 py-3">Uploaded</th><th class="px-5 py-3">Uploaded By</th><th class="px-5 py-3">Status</th><th class="px-5 py-3 text-right">Actions</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @foreach ($documents as $document)
+                                    <tr>
+                                        <td class="px-5 py-4 text-slate-700">{{ $document->document_type->label() }}</td>
+                                        <td class="px-5 py-4"><span class="font-medium text-slate-950">{{ $document->title }}</span>@if ($document->description)<span class="block text-xs text-slate-600">{{ $document->description }}</span>@endif<span class="block text-xs text-slate-500">{{ $document->original_filename }} · {{ Number::fileSize($document->file_size) }}</span></td>
+                                        <td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $document->document_date?->format('d M Y') ?? 'Not specified' }}</td>
+                                        <td class="whitespace-nowrap px-5 py-4 text-slate-600">{{ $document->created_at->format('d M Y') }}</td>
+                                        <td class="px-5 py-4 text-slate-600">{{ $document->uploader?->name ?? 'Former user' }}</td>
+                                        <td class="px-5 py-4 text-slate-600">{{ $document->trashed() ? 'Archived' : 'Active' }}</td>
+                                        <td class="px-5 py-4 text-right">
+                                            <div class="flex justify-end gap-3">
+                                                @if ($document->trashed())
+                                                    <form method="POST" action="{{ route('admin.employee-documents.restore', [$employee, $document]) }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="font-semibold text-portal-900 hover:underline">Restore</button>
+                                                    </form>
+                                                @else
+                                                    <a href="{{ route('admin.employee-documents.download', [$employee, $document]) }}" class="font-semibold text-portal-900 hover:underline">Download</a>
+                                                    <a href="{{ route('admin.employee-documents.edit', [$employee, $document]) }}" class="font-semibold text-slate-700 hover:underline">Edit</a>
+                                                    <form method="POST" action="{{ route('admin.employee-documents.destroy', [$employee, $document]) }}" onsubmit="return confirm('Archive this document? The private file will be retained.')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="font-semibold text-red-700 hover:underline">Archive</button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </x-card>
 

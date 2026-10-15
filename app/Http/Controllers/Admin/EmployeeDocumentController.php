@@ -69,30 +69,9 @@ class EmployeeDocumentController extends Controller
         Employee $employee,
         EmployeeDocument $employeeDocument,
     ): RedirectResponse {
-        $oldPath = $employeeDocument->file_path;
-        $metadata = [];
-
-        if ($request->hasFile('document_file')) {
-            $metadata = $this->privateFiles->store($request->file('document_file'), $employee, 'documents');
-        }
-
-        try {
-            $employeeDocument->update([
-                ...$request->safe()->only(['document_type', 'title', 'description', 'document_date']),
-                ...$metadata,
-                ...($metadata === [] ? [] : ['uploaded_by' => $request->user()->id]),
-            ]);
-        } catch (Throwable $exception) {
-            if ($metadata !== []) {
-                $this->privateFiles->delete($metadata['file_path'], $employee, 'documents');
-            }
-
-            throw $exception;
-        }
-
-        if ($metadata !== []) {
-            $this->privateFiles->delete($oldPath, $employee, 'documents');
-        }
+        $employeeDocument->update(
+            $request->safe()->only(['document_type', 'title', 'description', 'document_date']),
+        );
 
         return redirect()->to(route('admin.employees.show', $employee).'#documents')
             ->with('success', 'Employee document updated successfully.');

@@ -81,24 +81,40 @@ class EmployeeContractManagementTest extends TestCase
         ])->assertSessionHasErrors(['employee_id']);
     }
 
-    public function test_multiple_contracts_preserve_employee_history(): void
+    public function test_new_contract_record_preserves_existing_contract_and_private_file(): void
     {
+        Storage::fake('local');
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
         $employee = Employee::factory()->create();
-        EmployeeContract::factory()->for($employee)->create([
+        $existingPath = "employees/{$employee->id}/contracts/existing.pdf";
+        Storage::disk('local')->put($existingPath, 'existing contract');
+        $existingContract = EmployeeContract::factory()->for($employee)->create([
             'status' => ContractStatus::Superseded,
             'start_date' => '2025-01-01',
             'end_date' => '2025-12-31',
-        ]);
-        EmployeeContract::factory()->for($employee)->create([
-            'status' => ContractStatus::Active,
-            'start_date' => '2026-01-01',
-            'end_date' => '2026-12-31',
+            'file_path' => $existingPath,
+            'original_filename' => 'existing-contract.pdf',
         ]);
 
+        $this->actingAs($user)->post(route('admin.contracts.store'), [
+            'employee_id' => $employee->id,
+            'contract_type' => ContractType::FixedTerm->value,
+            'status' => ContractStatus::Active->value,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-12-31',
+            'contract_file' => UploadedFile::fake()->create('new-contract.pdf', 100, 'application/pdf'),
+        ])->assertRedirectToRoute('admin.contracts.index');
+
         $this->assertSame(2, $employee->contracts()->count());
+        $this->assertModelExists($existingContract);
+        $this->assertSame($existingPath, $existingContract->fresh()->file_path);
         $this->assertSame(
             [ContractStatus::Superseded, ContractStatus::Active],
             $employee->contracts()->oldest('start_date')->pluck('status')->all(),
+        );
+        Storage::disk('local')->assertExists($existingPath);
+        Storage::disk('local')->assertExists(
+            $employee->contracts()->whereKeyNot($existingContract->id)->sole()->file_path,
         );
     }
 
@@ -149,14 +165,17 @@ class EmployeeContractManagementTest extends TestCase
         $this->assertStringNotContainsString($path, $response->headers->get('content-disposition', ''));
     }
 
-    public function test_replacing_contract_file_removes_old_private_file_and_preserves_record(): void
+    public function test_contract_metadata_can_be_updated_without_replacing_or_deleting_private_file(): void
     {
         Storage::fake('local');
         $user = User::factory()->withRole(Role::HR_ADMIN)->create();
         $employee = Employee::factory()->create();
         $oldPath = "employees/{$employee->id}/contracts/old.pdf";
         Storage::disk('local')->put($oldPath, 'old');
-        $contract = EmployeeContract::factory()->for($employee)->create(['file_path' => $oldPath]);
+        $contract = EmployeeContract::factory()->for($employee)->create([
+            'file_path' => $oldPath,
+            'original_filename' => 'original-contract.pdf',
+        ]);
 
         $this->actingAs($user)->put(route('admin.contracts.update', $contract), [
             'contract_type' => ContractType::Permanent->value,
@@ -165,17 +184,47 @@ class EmployeeContractManagementTest extends TestCase
             'status' => ContractStatus::Active->value,
             'notice_period' => '60 days',
             'notes' => 'Updated metadata.',
-            'contract_file' => UploadedFile::fake()->create('replacement.pdf', 120, 'application/pdf'),
             'employee_id' => Employee::factory()->create()->id,
         ])->assertRedirectToRoute('admin.contracts.index')
             ->assertSessionHas('success', 'Employee contract updated successfully.');
 
         $contract->refresh();
         $this->assertSame($employee->id, $contract->employee_id);
-        $this->assertSame('replacement.pdf', $contract->original_filename);
-        Storage::disk('local')->assertMissing($oldPath);
-        Storage::disk('local')->assertExists($contract->file_path);
+        $this->assertSame('Updated metadata.', $contract->notes);
+        $this->assertSame($oldPath, $contract->file_path);
+        $this->assertSame('original-contract.pdf', $contract->original_filename);
+        Storage::disk('local')->assertExists($oldPath);
         $this->assertSame(1, EmployeeContract::query()->count());
+    }
+
+    public function test_contract_update_rejects_replacement_file_and_retains_original(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $employee = Employee::factory()->create();
+        $oldPath = "employees/{$employee->id}/contracts/original.pdf";
+        Storage::disk('local')->put($oldPath, 'original');
+        $contract = EmployeeContract::factory()->for($employee)->create([
+            'file_path' => $oldPath,
+            'original_filename' => 'original.pdf',
+            'notes' => 'Original metadata.',
+        ]);
+
+        $this->actingAs($user)->put(route('admin.contracts.update', $contract), [
+            'contract_type' => ContractType::Permanent->value,
+            'start_date' => '2026-01-01',
+            'status' => ContractStatus::Active->value,
+            'notes' => 'Attempted replacement.',
+            'contract_file' => UploadedFile::fake()->create('replacement.pdf', 120, 'application/pdf'),
+        ])->assertInvalid([
+            'contract_file' => 'The contract file field is prohibited.',
+        ]);
+
+        $contract->refresh();
+        $this->assertSame('Original metadata.', $contract->notes);
+        $this->assertSame($oldPath, $contract->file_path);
+        $this->assertSame('original.pdf', $contract->original_filename);
+        Storage::disk('local')->assertExists($oldPath);
     }
 
     public function test_archived_employee_profile_retains_contract_history(): void

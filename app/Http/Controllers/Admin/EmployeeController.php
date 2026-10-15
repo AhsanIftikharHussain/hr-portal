@@ -106,6 +106,7 @@ class EmployeeController extends Controller
             ->get();
 
         $documents = $employee->documents()
+            ->withTrashed()
             ->with('uploader:id,name')
             ->orderByDesc('document_date')
             ->orderByDesc('created_at')

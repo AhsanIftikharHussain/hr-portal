@@ -32,7 +32,7 @@ class UpdateEmployeeContractRequest extends FormRequest
             'status' => ['required', Rule::enum(ContractStatus::class)],
             'notice_period' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:5000'],
-            'contract_file' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
+            'contract_file' => ['prohibited'],
         ];
     }
 }

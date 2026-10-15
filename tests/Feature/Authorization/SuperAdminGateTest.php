@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Authorization;
 
+use App\Models\Employee;
+use App\Models\EmployeeDocument;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
@@ -25,6 +27,24 @@ class SuperAdminGateTest extends TestCase
         $hrAdmin = User::factory()->withRole(Role::HR_ADMIN)->create();
 
         $this->assertTrue(Gate::forUser($hrAdmin)->allows('hr-administration'));
+    }
+
+    public function test_super_admin_cannot_force_delete_protected_employee(): void
+    {
+        $superAdmin = User::factory()->withRole(Role::SUPER_ADMIN)->create();
+        $employee = Employee::factory()->create();
+
+        $this->assertFalse(Gate::forUser($superAdmin)->allows('forceDelete', $employee));
+        $this->assertTrue(Gate::forUser($superAdmin)->allows('delete', $employee));
+    }
+
+    public function test_super_admin_cannot_force_delete_protected_employee_document(): void
+    {
+        $superAdmin = User::factory()->withRole(Role::SUPER_ADMIN)->create();
+        $employeeDocument = EmployeeDocument::factory()->create();
+
+        $this->assertFalse(Gate::forUser($superAdmin)->allows('forceDelete', $employeeDocument));
+        $this->assertTrue(Gate::forUser($superAdmin)->allows('delete', $employeeDocument));
     }
 
     public function test_employee_does_not_have_hr_administration_ability(): void

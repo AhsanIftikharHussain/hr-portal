@@ -22,7 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::before(function (User $user): ?bool {
+        Gate::before(function (User $user, string $ability): ?bool {
+            if ($ability === 'forceDelete') {
+                return null;
+            }
+
             return $user->hasRole(Role::SUPER_ADMIN) ? true : null;
         });
 

@@ -122,33 +122,9 @@ class EmployeeContractController extends Controller
 
     public function update(UpdateEmployeeContractRequest $request, EmployeeContract $contract): RedirectResponse
     {
-        $contract->load('employee');
-        $oldPath = $contract->file_path;
-        $metadata = [];
-
-        if ($request->hasFile('contract_file')) {
-            $metadata = $this->privateFiles->store($request->file('contract_file'), $contract->employee, 'contracts');
-        }
-
-        try {
-            $contract->update([
-                ...$request->safe()->only([
-                    'contract_type', 'start_date', 'end_date', 'status', 'notice_period', 'notes',
-                ]),
-                ...$metadata,
-                ...($metadata === [] ? [] : ['uploaded_by' => $request->user()->id]),
-            ]);
-        } catch (Throwable $exception) {
-            if ($metadata !== []) {
-                $this->privateFiles->delete($metadata['file_path'], $contract->employee, 'contracts');
-            }
-
-            throw $exception;
-        }
-
-        if ($metadata !== []) {
-            $this->privateFiles->delete($oldPath, $contract->employee, 'contracts');
-        }
+        $contract->update($request->safe()->only([
+            'contract_type', 'start_date', 'end_date', 'status', 'notice_period', 'notes',
+        ]));
 
         return redirect()->route('admin.contracts.index')->with('success', 'Employee contract updated successfully.');
     }

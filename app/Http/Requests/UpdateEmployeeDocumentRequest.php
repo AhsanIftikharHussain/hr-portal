@@ -37,10 +37,7 @@ class UpdateEmployeeDocumentRequest extends FormRequest
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'document_date' => ['nullable', 'date'],
-            'document_file' => [
-                'nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png',
-                'extensions:pdf,doc,docx,jpg,jpeg,png', 'max:10240',
-            ],
+            'document_file' => ['prohibited'],
         ];
     }
 }

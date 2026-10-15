@@ -43,6 +43,33 @@ class EmployeeDocumentManagementTest extends TestCase
         Storage::disk('local')->assertExists($document->file_path);
     }
 
+    public function test_new_document_record_preserves_existing_document_and_private_file(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $employee = Employee::factory()->create();
+        $existingPath = "employees/{$employee->id}/documents/existing.pdf";
+        Storage::disk('local')->put($existingPath, 'existing document');
+        $existingDocument = EmployeeDocument::factory()->for($employee)->create([
+            'file_path' => $existingPath,
+            'original_filename' => 'existing-document.pdf',
+        ]);
+
+        $this->actingAs($user)->post(route('admin.employee-documents.store', $employee), [
+            'document_type' => EmployeeDocumentType::EmploymentLetter->value,
+            'title' => 'Revised Employment Letter',
+            'document_file' => UploadedFile::fake()->create('revised-employment-letter.pdf', 100, 'application/pdf'),
+        ])->assertRedirect(route('admin.employees.show', $employee).'#documents');
+
+        $this->assertSame(2, $employee->documents()->count());
+        $this->assertModelExists($existingDocument);
+        $this->assertSame($existingPath, $existingDocument->fresh()->file_path);
+        Storage::disk('local')->assertExists($existingPath);
+        Storage::disk('local')->assertExists(
+            $employee->documents()->whereKeyNot($existingDocument->id)->sole()->file_path,
+        );
+    }
+
     public function test_invalid_and_oversized_document_files_are_rejected(): void
     {
         Storage::fake('local');
@@ -117,21 +144,23 @@ class EmployeeDocumentManagementTest extends TestCase
             ->assertDontSee($document->file_path);
     }
 
-    public function test_document_metadata_and_file_can_be_replaced_safely(): void
+    public function test_document_metadata_can_be_updated_without_replacing_or_deleting_private_file(): void
     {
         Storage::fake('local');
         $user = User::factory()->withRole(Role::HR_ADMIN)->create();
         $employee = Employee::factory()->create();
         $oldPath = "employees/{$employee->id}/documents/old.pdf";
         Storage::disk('local')->put($oldPath, 'old');
-        $document = EmployeeDocument::factory()->for($employee)->create(['file_path' => $oldPath]);
+        $document = EmployeeDocument::factory()->for($employee)->create([
+            'file_path' => $oldPath,
+            'original_filename' => 'original-document.pdf',
+        ]);
 
         $this->actingAs($user)->put(route('admin.employee-documents.update', [$employee, $document]), [
             'document_type' => EmployeeDocumentType::EmploymentLetter->value,
             'title' => 'Employment Verification',
-            'description' => 'Replacement supplied by HR.',
+            'description' => 'Metadata updated by HR.',
             'document_date' => '2026-09-22',
-            'document_file' => UploadedFile::fake()->create('employment-letter.pdf', 80, 'application/pdf'),
             'employee_id' => Employee::factory()->create()->id,
         ])->assertRedirect(route('admin.employees.show', $employee).'#documents')
             ->assertSessionHas('success', 'Employee document updated successfully.');
@@ -139,9 +168,37 @@ class EmployeeDocumentManagementTest extends TestCase
         $document->refresh();
         $this->assertSame($employee->id, $document->employee_id);
         $this->assertSame('Employment Verification', $document->title);
-        $this->assertSame('employment-letter.pdf', $document->original_filename);
-        Storage::disk('local')->assertMissing($oldPath);
-        Storage::disk('local')->assertExists($document->file_path);
+        $this->assertSame($oldPath, $document->file_path);
+        $this->assertSame('original-document.pdf', $document->original_filename);
+        Storage::disk('local')->assertExists($oldPath);
+    }
+
+    public function test_document_update_rejects_replacement_file_and_retains_original(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $employee = Employee::factory()->create();
+        $oldPath = "employees/{$employee->id}/documents/original.pdf";
+        Storage::disk('local')->put($oldPath, 'original');
+        $document = EmployeeDocument::factory()->for($employee)->create([
+            'file_path' => $oldPath,
+            'original_filename' => 'original.pdf',
+            'title' => 'Original title',
+        ]);
+
+        $this->actingAs($user)->put(route('admin.employee-documents.update', [$employee, $document]), [
+            'document_type' => EmployeeDocumentType::EmploymentLetter->value,
+            'title' => 'Attempted replacement',
+            'document_file' => UploadedFile::fake()->create('replacement.pdf', 80, 'application/pdf'),
+        ])->assertInvalid([
+            'document_file' => 'The document file field is prohibited.',
+        ]);
+
+        $document->refresh();
+        $this->assertSame('Original title', $document->title);
+        $this->assertSame($oldPath, $document->file_path);
+        $this->assertSame('original.pdf', $document->original_filename);
+        Storage::disk('local')->assertExists($oldPath);
     }
 
     public function test_archiving_document_retains_private_file_and_soft_deletes_metadata(): void
@@ -159,6 +216,49 @@ class EmployeeDocumentManagementTest extends TestCase
 
         $this->assertSoftDeleted($document);
         Storage::disk('local')->assertExists($path);
+    }
+
+    public function test_hr_admin_can_view_and_restore_archived_document_without_changing_private_file(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $employee = Employee::factory()->create();
+        $path = "employees/{$employee->id}/documents/archived.pdf";
+        Storage::disk('local')->put($path, 'archived');
+        $document = EmployeeDocument::factory()->for($employee)->create([
+            'file_path' => $path,
+            'title' => 'Archived Personnel File',
+        ]);
+        $document->delete();
+
+        $this->actingAs($user)->get(route('admin.employees.show', $employee))
+            ->assertOk()
+            ->assertSee('Archived Personnel File')
+            ->assertSee('Archived')
+            ->assertSee('Restore');
+
+        $this->actingAs($user)
+            ->delete(route('admin.employee-documents.restore', [$employee, $document]))
+            ->assertRedirect(route('admin.employees.show', $employee).'#documents')
+            ->assertSessionHas('status', 'Employee document restored successfully.');
+
+        $this->assertNotSoftDeleted($document);
+        $this->assertSame($path, $document->fresh()->file_path);
+        Storage::disk('local')->assertExists($path);
+    }
+
+    public function test_employee_role_cannot_restore_archived_document(): void
+    {
+        $user = User::factory()->withRole(Role::EMPLOYEE)->create();
+        $employee = Employee::factory()->create();
+        $document = EmployeeDocument::factory()->for($employee)->create();
+        $document->delete();
+
+        $this->actingAs($user)
+            ->delete(route('admin.employee-documents.restore', [$employee, $document]))
+            ->assertForbidden();
+
+        $this->assertSoftDeleted($document);
     }
 
     public function test_document_title_and_description_are_escaped_on_employee_profile(): void

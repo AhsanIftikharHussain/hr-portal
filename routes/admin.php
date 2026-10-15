@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ApprovedLeaveRequestController;
 use App\Http\Controllers\Admin\ArchivedEmployeeController;
+use App\Http\Controllers\Admin\ArchivedEmployeeDocumentController;
 use App\Http\Controllers\Admin\AttendanceRecordController;
 use App\Http\Controllers\Admin\CancelledLeaveRequestController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -72,6 +73,9 @@ Route::prefix('admin')
             ->name('employee-documents.update');
         Route::get('employees/{employee}/documents/{employee_document}/download', [EmployeeDocumentController::class, 'download'])
             ->name('employee-documents.download');
+        Route::delete('employees/{employee}/documents/{employee_document}/archive', [ArchivedEmployeeDocumentController::class, 'destroy'])
+            ->withTrashed()
+            ->name('employee-documents.restore');
         Route::delete('employees/{employee}/documents/{employee_document}', [EmployeeDocumentController::class, 'destroy'])
             ->name('employee-documents.destroy');
 
