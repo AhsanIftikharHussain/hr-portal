@@ -9,6 +9,7 @@ use App\Models\LeaveType;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class LeaveIntegrationTest extends TestCase
@@ -42,6 +43,35 @@ class LeaveIntegrationTest extends TestCase
         $this->actingAs($user)->get(route('admin.dashboard'))
             ->assertOk()
             ->assertViewHas('leaveMetrics', ['pending' => 0, 'on_leave_today' => 0]);
+    }
+
+    public function test_dashboard_lists_actionable_pending_leave_requests_with_review_links(): void
+    {
+        $this->travelTo('2026-10-19 09:00:00');
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $leaveType = LeaveType::factory()->create(['name' => 'Annual Leave']);
+        $includedEmployee = Employee::factory()->create(['full_name' => 'Pending Leave Employee']);
+        $pendingRequest = LeaveRequest::factory()->for($includedEmployee)->for($leaveType)->create([
+            'start_date' => '2026-10-21',
+            'end_date' => '2026-10-23',
+            'duration_days' => 3,
+            'requested_at' => '2026-10-18 09:00:00',
+        ]);
+        LeaveRequest::factory()->rejected($user)->create();
+        $archivedEmployee = Employee::factory()->archived()->create(['full_name' => 'Archived Pending Employee']);
+        LeaveRequest::factory()->for($archivedEmployee)->create();
+
+        $this->actingAs($user)->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertViewHas('pendingLeaveRequests', function (Collection $requests) use ($pendingRequest): bool {
+                return $requests->pluck('id')->all() === [$pendingRequest->id];
+            })
+            ->assertSee('Pending Leave Employee')
+            ->assertSee('Annual Leave')
+            ->assertSee('21 Oct 2026')
+            ->assertSee('3 days')
+            ->assertSee('Review / Approve')
+            ->assertSee(route('admin.leave-requests.show', $pendingRequest));
     }
 
     public function test_employee_profile_shows_leave_history_and_approved_usage_only(): void

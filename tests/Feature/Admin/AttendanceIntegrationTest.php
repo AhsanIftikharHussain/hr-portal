@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\AttendanceStatus;
+use App\EmploymentStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
 use App\Models\Role;
@@ -86,30 +87,34 @@ class AttendanceIntegrationTest extends TestCase
             ->assertSee('Absent');
     }
 
-    public function test_dashboard_counts_explicit_present_and_absent_records_only(): void
+    public function test_dashboard_separates_present_absent_and_not_recorded_active_employees(): void
     {
         $this->travelTo('2026-09-22 09:00:00');
         $user = User::factory()->withRole(Role::HR_ADMIN)->create();
         AttendanceRecord::factory()->count(2)->create(['attendance_date' => '2026-09-22', 'status' => AttendanceStatus::Present]);
         AttendanceRecord::factory()->absent()->create(['attendance_date' => '2026-09-22']);
+        AttendanceRecord::factory()->onLeave()->create(['attendance_date' => '2026-09-22']);
         Employee::factory()->count(2)->create();
 
         $this->actingAs($user)->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertViewHas('attendanceMetrics', ['present' => 2, 'absent' => 1]);
+            ->assertViewHas('attendanceMetrics', ['present' => 2, 'absent' => 1, 'not_recorded' => 2])
+            ->assertSee('Not Recorded Today')
+            ->assertSee('No explicit record; not classified as absent');
     }
 
-    public function test_dashboard_excludes_archived_employees_and_missing_records(): void
+    public function test_dashboard_not_recorded_excludes_archived_and_non_active_employees(): void
     {
         $this->travelTo('2026-09-22 09:00:00');
         $user = User::factory()->withRole(Role::HR_ADMIN)->create();
         $archived = Employee::factory()->archived()->create();
         AttendanceRecord::factory()->for($archived)->absent()->create(['attendance_date' => '2026-09-22']);
         Employee::factory()->create();
+        Employee::factory()->create(['employment_status' => EmploymentStatus::OnProbation]);
 
         $this->actingAs($user)->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertViewHas('attendanceMetrics', ['present' => 0, 'absent' => 0]);
+            ->assertViewHas('attendanceMetrics', ['present' => 0, 'absent' => 0, 'not_recorded' => 1]);
     }
 
     public function test_notes_are_escaped_on_correction_page(): void

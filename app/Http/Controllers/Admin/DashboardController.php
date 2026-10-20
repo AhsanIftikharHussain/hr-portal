@@ -75,6 +75,16 @@ class DashboardController extends Controller
                 ->count('employee_id'),
         ];
 
+        $pendingLeaveRequests = LeaveRequest::query()
+            ->select(['id', 'employee_id', 'leave_type_id', 'start_date', 'end_date', 'duration_days', 'requested_at'])
+            ->with(['employee:id,full_name,deleted_at', 'leaveType:id,name'])
+            ->where('status', LeaveRequestStatus::Pending)
+            ->whereHas('employee', fn (Builder $query) => $query->whereNull('deleted_at'))
+            ->orderBy('requested_at')
+            ->orderBy('id')
+            ->limit(5)
+            ->get();
+
         $attendanceCounts = AttendanceRecord::query()
             ->toBase()
             ->join('employees', 'employees.id', '=', 'attendance_records.employee_id')
@@ -88,7 +98,58 @@ class DashboardController extends Controller
         $attendanceMetrics = [
             'present' => (int) $attendanceCounts->get(AttendanceStatus::Present->value, 0),
             'absent' => (int) $attendanceCounts->get(AttendanceStatus::Absent->value, 0),
+            'not_recorded' => Employee::query()
+                ->where('employment_status', EmploymentStatus::Active)
+                ->whereDoesntHave(
+                    'attendanceRecords',
+                    fn (Builder $query) => $query->whereDate('attendance_date', $today),
+                )
+                ->count(),
         ];
+
+        $currentEmploymentStatuses = [
+            EmploymentStatus::Active,
+            EmploymentStatus::OnProbation,
+            EmploymentStatus::NoticePeriod,
+        ];
+
+        $birthdaysThisMonth = Employee::query()
+            ->select(['id', 'full_name', 'department_id', 'date_of_birth'])
+            ->with('department:id,name')
+            ->whereIn('employment_status', $currentEmploymentStatuses)
+            ->whereNotNull('date_of_birth')
+            ->whereMonth('date_of_birth', $today->month)
+            ->get()
+            ->sortBy(fn (Employee $employee): string => $employee->date_of_birth->format('d').'-'.$employee->full_name)
+            ->values();
+
+        $workAnniversariesThisMonth = Employee::query()
+            ->select(['id', 'full_name', 'department_id', 'joining_date'])
+            ->with('department:id,name')
+            ->whereIn('employment_status', $currentEmploymentStatuses)
+            ->whereMonth('joining_date', $today->month)
+            ->whereYear('joining_date', '<', $today->year)
+            ->get()
+            ->sortBy(fn (Employee $employee): string => $employee->joining_date->format('d').'-'.$employee->full_name)
+            ->values()
+            ->map(fn (Employee $employee): array => [
+                'employee' => $employee,
+                'completedYears' => $today->year - $employee->joining_date->year,
+            ]);
+
+        $probationEndingSoon = Employee::query()
+            ->select(['id', 'full_name', 'department_id', 'job_title_id', 'confirmation_date'])
+            ->with(['department:id,name', 'jobTitle:id,name'])
+            ->where('employment_status', EmploymentStatus::OnProbation)
+            ->whereBetween('confirmation_date', [$today, $today->copy()->addDays(30)])
+            ->orderBy('confirmation_date')
+            ->orderBy('id')
+            ->limit(5)
+            ->get()
+            ->map(fn (Employee $employee): array => [
+                'employee' => $employee,
+                'daysRemaining' => (int) $today->diffInDays($employee->confirmation_date),
+            ]);
 
         $contractsExpiringSoon = EmployeeContract::query()
             ->whereIn('status', ContractStatus::expiringStatuses())
@@ -110,8 +171,12 @@ class DashboardController extends Controller
             'departments' => $departments,
             'recentEmployees' => $recentEmployees,
             'leaveMetrics' => $leaveMetrics,
+            'pendingLeaveRequests' => $pendingLeaveRequests,
             'today' => $today,
             'attendanceMetrics' => $attendanceMetrics,
+            'birthdaysThisMonth' => $birthdaysThisMonth,
+            'workAnniversariesThisMonth' => $workAnniversariesThisMonth,
+            'probationEndingSoon' => $probationEndingSoon,
             'contractsExpiringSoon' => $contractsExpiringSoon,
             'upcomingHolidays' => $upcomingHolidays,
         ]);

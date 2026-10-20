@@ -18,6 +18,21 @@
             </div>
         </section>
 
+        <section aria-labelledby="quick-actions-heading">
+            <div class="mb-3"><h2 id="quick-actions-heading" class="text-lg font-semibold text-slate-950">Quick Actions</h2><p class="mt-1 text-sm text-slate-500">Open an existing HR workflow.</p></div>
+            <div class="flex flex-wrap gap-3">
+                @can('create', \App\Models\Employee::class)
+                    <a href="{{ route('admin.employees.create') }}" class="rounded-lg bg-portal-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-portal-800">Add Employee</a>
+                @endcan
+                @can('create', \App\Models\AttendanceRecord::class)
+                    <a href="{{ route('admin.attendance.create') }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Mark Attendance</a>
+                @endcan
+                @can('viewAny', \App\Models\LeaveRequest::class)
+                    <a href="{{ route('admin.leave-requests.index', ['status' => \App\LeaveRequestStatus::Pending->value]) }}" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50">Approve Leave</a>
+                @endcan
+            </div>
+        </section>
+
         <section aria-labelledby="contract-metrics-heading">
             <div class="mb-3 flex items-end justify-between gap-4"><div><h2 id="contract-metrics-heading" class="text-lg font-semibold text-slate-950">Contract Expiry</h2><p class="mt-1 text-sm text-slate-500">Active or upcoming contracts ending within the next 30 days.</p></div><a href="{{ route('admin.contracts.index') }}" class="text-sm font-semibold text-portal-900 hover:underline">View all contracts →</a></div>
             <div class="grid gap-4 sm:grid-cols-2">
@@ -38,9 +53,10 @@
 
         <section aria-labelledby="attendance-metrics-heading">
             <div class="mb-3 flex items-end justify-between gap-4"><div><h2 id="attendance-metrics-heading" class="text-lg font-semibold text-slate-950">Attendance Today</h2><p class="mt-1 text-sm text-slate-500">Counts use explicit records only; missing records are not treated as absent.</p></div><a href="{{ route('admin.attendance.index', ['date' => $today->toDateString()]) }}" class="text-sm font-semibold text-portal-900 hover:underline">View attendance →</a></div>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-3">
                 <a href="{{ route('admin.attendance.index', ['date' => $today->toDateString(), 'status' => \App\AttendanceStatus::Present->value]) }}" class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"><p class="text-sm font-medium text-slate-500">Present Today</p><p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $attendanceMetrics['present'] }}</p><p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">View explicit present records →</p></a>
                 <a href="{{ route('admin.attendance.index', ['date' => $today->toDateString(), 'status' => \App\AttendanceStatus::Absent->value]) }}" class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"><p class="text-sm font-medium text-slate-500">Absent Today</p><p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $attendanceMetrics['absent'] }}</p><p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">View explicit absent records →</p></a>
+                <a href="{{ route('admin.attendance.index', ['date' => $today->toDateString()]) }}" class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"><p class="text-sm font-medium text-slate-500">Not Recorded Today</p><p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $attendanceMetrics['not_recorded'] }}</p><p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">No explicit record; not classified as absent →</p></a>
             </div>
         </section>
 
@@ -51,6 +67,70 @@
                 <a href="{{ route('admin.leave-requests.index', ['status' => \App\LeaveRequestStatus::Approved->value, 'date_from' => $today->toDateString(), 'date_to' => $today->toDateString()]) }}" class="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"><p class="text-sm font-medium text-slate-500">On Leave Today</p><p class="mt-3 text-3xl font-bold tracking-tight text-slate-950">{{ $leaveMetrics['on_leave_today'] }}</p><p class="mt-2 text-xs font-medium text-slate-500 group-hover:text-slate-800">View approved date ranges →</p></a>
             </div>
         </section>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+            <x-card title="Pending Leave Requests">
+                @if ($pendingLeaveRequests->isEmpty())
+                    <x-empty-state title="No pending leave requests" description="New requests awaiting HR review will appear here." />
+                @else
+                    <div class="divide-y divide-slate-100">
+                        @foreach ($pendingLeaveRequests as $leaveRequest)
+                            <div class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold text-slate-900">{{ $leaveRequest->employee->full_name }}</p>
+                                    <p class="mt-0.5 text-xs text-slate-500">{{ $leaveRequest->leaveType->name }} · {{ $leaveRequest->start_date->format('d M Y') }} – {{ $leaveRequest->end_date->format('d M Y') }} · {{ $leaveRequest->duration_days }} {{ Str::plural('day', $leaveRequest->duration_days) }}</p>
+                                </div>
+                                @can('view', $leaveRequest)
+                                    <a href="{{ route('admin.leave-requests.show', $leaveRequest) }}" class="whitespace-nowrap text-sm font-semibold text-portal-900 hover:underline">Review / Approve</a>
+                                @endcan
+                            </div>
+                        @endforeach
+                    </div>
+                    <a href="{{ route('admin.leave-requests.index', ['status' => \App\LeaveRequestStatus::Pending->value]) }}" class="mt-4 inline-block text-sm font-semibold text-portal-900 hover:underline">View all pending requests →</a>
+                @endif
+            </x-card>
+
+            <x-card title="Probation Ending Soon">
+                @if ($probationEndingSoon->isEmpty())
+                    <x-empty-state title="No probation confirmations due in the next 30 days" description="Employees on probation with an upcoming confirmation date will appear here." />
+                @else
+                    <div class="divide-y divide-slate-100">
+                        @foreach ($probationEndingSoon as $item)
+                            <a href="{{ route('admin.employees.show', $item['employee']) }}" class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+                                <span class="min-w-0"><span class="block truncate text-sm font-semibold text-slate-900">{{ $item['employee']->full_name }}</span><span class="block truncate text-xs text-slate-500">{{ $item['employee']->jobTitle->name }} · {{ $item['employee']->department->name }}</span></span>
+                                <span class="whitespace-nowrap text-right"><span class="block text-sm font-medium text-slate-700">{{ $item['employee']->confirmation_date->format('d M Y') }}</span><span class="block text-xs text-slate-500">{{ $item['daysRemaining'] === 0 ? 'Due today' : $item['daysRemaining'].' '.Str::plural('day', $item['daysRemaining']).' remaining' }}</span></span>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </x-card>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-2">
+            <x-card title="Birthdays This Month">
+                @if ($birthdaysThisMonth->isEmpty())
+                    <x-empty-state title="No birthdays this month" description="Current employees with birthdays this month will appear here." />
+                @else
+                    <div class="divide-y divide-slate-100">
+                        @foreach ($birthdaysThisMonth as $employee)
+                            <a href="{{ route('admin.employees.show', $employee) }}" class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"><span class="min-w-0"><span class="block truncate text-sm font-semibold text-slate-900">{{ $employee->full_name }}</span><span class="block truncate text-xs text-slate-500">{{ $employee->department->name }}</span></span><span class="whitespace-nowrap text-sm font-medium text-slate-700">{{ $employee->date_of_birth->format('d M') }}</span></a>
+                        @endforeach
+                    </div>
+                @endif
+            </x-card>
+
+            <x-card title="Work Anniversaries This Month">
+                @if ($workAnniversariesThisMonth->isEmpty())
+                    <x-empty-state title="No work anniversaries this month" description="Completed service anniversaries for current employees will appear here." />
+                @else
+                    <div class="divide-y divide-slate-100">
+                        @foreach ($workAnniversariesThisMonth as $item)
+                            <a href="{{ route('admin.employees.show', $item['employee']) }}" class="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"><span class="min-w-0"><span class="block truncate text-sm font-semibold text-slate-900">{{ $item['employee']->full_name }}</span><span class="block truncate text-xs text-slate-500">{{ $item['employee']->department->name }}</span></span><span class="whitespace-nowrap text-right"><span class="block text-sm font-medium text-slate-700">{{ $item['employee']->joining_date->format('d M') }}</span><span class="block text-xs text-slate-500">{{ $item['completedYears'] }} {{ Str::plural('year', $item['completedYears']) }}</span></span></a>
+                        @endforeach
+                    </div>
+                @endif
+            </x-card>
+        </div>
 
         <div class="grid gap-6 xl:grid-cols-2">
             <x-card title="Employment Status Overview">
