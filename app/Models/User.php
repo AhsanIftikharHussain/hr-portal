@@ -80,6 +80,17 @@ class User extends Authenticatable
         return $this->roles()->where('slug', $slug)->exists();
     }
 
+    public function managedDepartmentId(): ?int
+    {
+        if (! $this->hasRole(Role::DEPARTMENT_MANAGER)) {
+            return null;
+        }
+
+        return $this->employee()
+            ->whereHas('department', fn ($query) => $query->where('is_active', true))
+            ->value('department_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

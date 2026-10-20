@@ -18,12 +18,14 @@ class Role extends Model
 
     public const HR_ADMIN = 'hr-admin';
 
+    public const DEPARTMENT_MANAGER = 'department-manager';
+
     public const EMPLOYEE = 'employee';
 
     /** @return array<int, string> */
     public static function assignableSlugs(): array
     {
-        return [self::HR_ADMIN, self::EMPLOYEE];
+        return [self::HR_ADMIN, self::DEPARTMENT_MANAGER, self::EMPLOYEE];
     }
 
     /**

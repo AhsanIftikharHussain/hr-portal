@@ -2,6 +2,7 @@
 
 namespace App\Http\Responses;
 
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,9 +11,15 @@ class LoginResponse implements LoginResponseContract
 {
     public static function redirectPath(Request $request): string
     {
-        return $request->user()->can('access-admin')
-            ? route('admin.dashboard')
-            : route('profile.edit');
+        if ($request->user()->can('access-admin')) {
+            return route('admin.dashboard');
+        }
+
+        if ($request->user()->hasRole(Role::DEPARTMENT_MANAGER)) {
+            return route('manager.dashboard');
+        }
+
+        return route('profile.edit');
     }
 
     public function toResponse($request): Response

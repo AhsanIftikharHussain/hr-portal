@@ -53,6 +53,18 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_active_department_manager_is_redirected_to_manager_dashboard_after_login(): void
+    {
+        $user = User::factory()->withRole(Role::DEPARTMENT_MANAGER)->create();
+
+        $this->post(route('login'), [
+            'email' => $user->email,
+            'password' => 'password',
+        ])->assertRedirectToRoute('manager.dashboard');
+
+        $this->assertAuthenticatedAs($user);
+    }
+
     public function test_invalid_credentials_do_not_authenticate_user(): void
     {
         $user = User::factory()->create();

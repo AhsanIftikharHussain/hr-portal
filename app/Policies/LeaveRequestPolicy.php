@@ -13,7 +13,7 @@ class LeaveRequestPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(Role::HR_ADMIN);
+        return $user->hasRole(Role::HR_ADMIN) || $user->managedDepartmentId() !== null;
     }
 
     /**
@@ -21,7 +21,7 @@ class LeaveRequestPolicy
      */
     public function view(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->hasRole(Role::HR_ADMIN);
+        return $user->hasRole(Role::HR_ADMIN) || $this->managesEmployee($user, $leaveRequest);
     }
 
     /**
@@ -37,7 +37,12 @@ class LeaveRequestPolicy
      */
     public function update(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->hasRole(Role::HR_ADMIN);
+        if ($user->hasRole(Role::HR_ADMIN)) {
+            return true;
+        }
+
+        return $this->managesEmployee($user, $leaveRequest)
+            && $user->employee()->value('id') !== $leaveRequest->employee_id;
     }
 
     /**
@@ -62,5 +67,16 @@ class LeaveRequestPolicy
     public function forceDelete(User $user, LeaveRequest $leaveRequest): bool
     {
         return false;
+    }
+
+    private function managesEmployee(User $user, LeaveRequest $leaveRequest): bool
+    {
+        $departmentId = $user->managedDepartmentId();
+
+        return $departmentId !== null
+            && $leaveRequest->employee()
+                ->where('department_id', $departmentId)
+                ->whereNull('employees.deleted_at')
+                ->exists();
     }
 }

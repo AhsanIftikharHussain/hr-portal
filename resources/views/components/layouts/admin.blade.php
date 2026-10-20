@@ -16,7 +16,7 @@
                 :class="mobileNavigationOpen ? 'translate-x-0' : '-translate-x-full'"
             >
                 <div class="flex h-16 items-center justify-between border-b border-slate-200 px-5">
-                    <a href="{{ auth()->user()->can('access-admin') ? route('admin.dashboard') : route('profile.edit') }}" class="flex items-center gap-3 font-semibold">
+                    <a href="{{ auth()->user()->can('access-admin') ? route('admin.dashboard') : (auth()->user()->can('access-manager') ? route('manager.dashboard') : route('profile.edit')) }}" class="flex items-center gap-3 font-semibold">
                         <span class="flex size-9 items-center justify-center rounded-lg bg-portal-900 text-sm text-white">CP</span>
                         <span>{{ config('app.name') }}</span>
                     </a>
@@ -39,18 +39,22 @@
                         <x-nav-item :href="route('admin.departments.index')" :active="request()->routeIs('admin.departments.*')">Departments</x-nav-item>
                         <x-nav-item :href="route('admin.job-titles.index')" :active="request()->routeIs('admin.job-titles.*')">Designations</x-nav-item>
                         <x-nav-item :href="route('admin.leave-types.index')" :active="request()->routeIs('admin.leave-types.*')">Leave Types</x-nav-item>
+                    @elsecan('access-manager')
+                        <x-nav-item :href="route('manager.dashboard')" :active="request()->routeIs('manager.dashboard')">Dashboard</x-nav-item>
+                        <x-nav-item :href="route('manager.attendance.index')" :active="request()->routeIs('manager.attendance.*')">Department Attendance</x-nav-item>
+                        <x-nav-item :href="route('manager.leave-requests.index')" :active="request()->routeIs('manager.leave-requests.*')">Department Leave</x-nav-item>
                     @endcan
                     <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Account</div>
                     <x-nav-item :href="route('profile.edit')" :active="request()->routeIs('profile.*')">My Profile</x-nav-item>
                 </nav>
 
-                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">{{ auth()->user()->can('access-admin') ? 'HR Administration' : 'Employee Account' }}</div>
+                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">{{ auth()->user()->can('access-admin') ? 'HR Administration' : (auth()->user()->can('access-manager') ? 'Department Management' : 'Employee Account') }}</div>
             </aside>
 
             <div class="min-w-0 flex-1">
                 <header class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
                     <button type="button" class="rounded-md p-2 text-slate-600 hover:bg-slate-100 lg:hidden" @click="mobileNavigationOpen = true" aria-label="Open navigation">☰</button>
-                    <div class="hidden text-sm text-slate-500 sm:block">{{ auth()->user()->can('access-admin') ? 'HR Administration' : 'My Account' }}</div>
+                    <div class="hidden text-sm text-slate-500 sm:block">{{ auth()->user()->can('access-admin') ? 'HR Administration' : (auth()->user()->can('access-manager') ? 'Department Management' : 'My Account') }}</div>
 
                     <div class="relative">
                         <button type="button" class="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-slate-100" @click="userMenuOpen = !userMenuOpen" @click.outside="userMenuOpen = false" :aria-expanded="userMenuOpen">

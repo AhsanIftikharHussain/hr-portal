@@ -37,5 +37,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('hr-administration', function (User $user): bool {
             return $user->hasRole(Role::HR_ADMIN);
         });
+
+        Gate::define('access-manager', function (User $user): bool {
+            return $user->hasRole(Role::DEPARTMENT_MANAGER);
+        });
     }
 }
