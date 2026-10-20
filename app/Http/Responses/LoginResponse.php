@@ -19,6 +19,10 @@ class LoginResponse implements LoginResponseContract
             return route('manager.dashboard');
         }
 
+        if ($request->user()->hasRole(Role::EMPLOYEE)) {
+            return route('employee.dashboard');
+        }
+
         return route('profile.edit');
     }
 

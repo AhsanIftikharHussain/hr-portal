@@ -40,6 +40,10 @@ class LeaveDecisionNotificationTest extends TestCase
         $this->assertSame(1, $recipient->notifications()->count());
         $this->assertSame(0, $unrelated->notifications()->count());
         $this->assertSame('Leave request approved', $recipient->notifications()->first()->data['title']);
+        $this->assertSame(
+            route('employee.leave-requests.show', $leaveRequest),
+            $recipient->notifications()->first()->data['url'],
+        );
     }
 
     public function test_successful_rejection_notifies_the_employee_without_storing_the_reason_in_payload(): void

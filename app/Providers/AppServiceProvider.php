@@ -44,6 +44,10 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole(Role::DEPARTMENT_MANAGER);
         });
 
+        Gate::define('access-employee', function (User $user): bool {
+            return $user->hasRole(Role::EMPLOYEE);
+        });
+
         View::composer('components.layouts.admin', function (IlluminateView $view): void {
             $view->with(
                 'unreadNotificationCount',

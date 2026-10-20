@@ -41,14 +41,14 @@ class AuthenticationTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_active_employee_is_redirected_to_profile_after_login(): void
+    public function test_active_employee_is_redirected_to_employee_dashboard_after_login(): void
     {
         $user = User::factory()->withRole(Role::EMPLOYEE)->create();
 
         $this->post(route('login'), [
             'email' => $user->email,
             'password' => 'password',
-        ])->assertRedirectToRoute('profile.edit');
+        ])->assertRedirectToRoute('employee.dashboard');
 
         $this->assertAuthenticatedAs($user);
     }
@@ -127,9 +127,9 @@ class AuthenticationTest extends TestCase
 
         $this->actingAs($employee)
             ->get(route('login'))
-            ->assertRedirectToRoute('profile.edit');
+            ->assertRedirectToRoute('employee.dashboard');
 
-        $this->get(route('profile.edit'))->assertOk();
+        $this->get(route('employee.dashboard'))->assertOk();
     }
 
     public function test_authenticated_hr_admin_visiting_login_is_redirected_once_to_admin(): void

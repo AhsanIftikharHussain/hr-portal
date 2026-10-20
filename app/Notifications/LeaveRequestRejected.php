@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\LeaveRequest;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -30,7 +32,7 @@ class LeaveRequestRejected extends Notification
             ->greeting('Hello '.$notifiable->name.',')
             ->line($this->message())
             ->line('Please contact HR if you need further information.')
-            ->action('View notifications', route('notifications.index'))
+            ->action('View leave request', $this->destinationUrl($notifiable))
             ->line('This is an automated notification from '.config('app.name').'.');
     }
 
@@ -45,8 +47,19 @@ class LeaveRequestRejected extends Notification
             'title' => 'Leave request rejected',
             'message' => $this->message(),
             'category' => 'leave-rejected',
-            'url' => route('notifications.index'),
+            'url' => $this->destinationUrl($notifiable),
         ];
+    }
+
+    private function destinationUrl(object $notifiable): string
+    {
+        if ($notifiable instanceof User
+            && $notifiable->hasRole(Role::EMPLOYEE)
+            && $notifiable->employee()->whereKey($this->leaveRequest->employee_id)->exists()) {
+            return route('employee.leave-requests.show', $this->leaveRequest);
+        }
+
+        return route('notifications.index');
     }
 
     private function message(): string

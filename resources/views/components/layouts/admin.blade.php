@@ -16,7 +16,7 @@
                 :class="mobileNavigationOpen ? 'translate-x-0' : '-translate-x-full'"
             >
                 <div class="flex h-16 items-center justify-between border-b border-slate-200 px-5">
-                    <a href="{{ auth()->user()->can('access-admin') ? route('admin.dashboard') : (auth()->user()->can('access-manager') ? route('manager.dashboard') : route('profile.edit')) }}" class="flex items-center gap-3 font-semibold">
+                    <a href="{{ auth()->user()->can('access-admin') ? route('admin.dashboard') : (auth()->user()->can('access-manager') ? route('manager.dashboard') : (auth()->user()->can('access-employee') ? route('employee.dashboard') : route('profile.edit'))) }}" class="flex items-center gap-3 font-semibold">
                         <span class="flex size-9 items-center justify-center rounded-lg bg-portal-900 text-sm text-white">CP</span>
                         <span>{{ config('app.name') }}</span>
                     </a>
@@ -43,19 +43,26 @@
                         <x-nav-item :href="route('manager.dashboard')" :active="request()->routeIs('manager.dashboard')">Dashboard</x-nav-item>
                         <x-nav-item :href="route('manager.attendance.index')" :active="request()->routeIs('manager.attendance.*')">Department Attendance</x-nav-item>
                         <x-nav-item :href="route('manager.leave-requests.index')" :active="request()->routeIs('manager.leave-requests.*')">Department Leave</x-nav-item>
+                    @elsecan('access-employee')
+                        <x-nav-item :href="route('employee.dashboard')" :active="request()->routeIs('employee.dashboard')">Dashboard</x-nav-item>
+                        <x-nav-item :href="route('employee.profile.show')" :active="request()->routeIs('employee.profile.*')">My Profile</x-nav-item>
+                        <x-nav-item :href="route('employee.leave-requests.index')" :active="request()->routeIs('employee.leave-requests.*')">My Leave</x-nav-item>
+                        <x-nav-item :href="route('employee.attendance.index')" :active="request()->routeIs('employee.attendance.*')">My Attendance</x-nav-item>
+                        <x-nav-item :href="route('employee.policies.index')" :active="request()->routeIs('employee.policies.*')">Policies</x-nav-item>
+                        <x-nav-item :href="route('employee.holidays.index')" :active="request()->routeIs('employee.holidays.*')">Holidays</x-nav-item>
                     @endcan
                     <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Account</div>
                     <x-nav-item :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">Notifications <span class="ml-1 text-xs">{{ $unreadNotificationCount > 0 ? '('.$unreadNotificationCount.')' : '' }}</span></x-nav-item>
-                    <x-nav-item :href="route('profile.edit')" :active="request()->routeIs('profile.*')">My Profile</x-nav-item>
+                    <x-nav-item :href="route('profile.edit')" :active="request()->routeIs('profile.*')">My Account &amp; Password</x-nav-item>
                 </nav>
 
-                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">{{ auth()->user()->can('access-admin') ? 'HR Administration' : (auth()->user()->can('access-manager') ? 'Department Management' : 'Employee Account') }}</div>
+                <div class="border-t border-slate-200 p-4 text-xs text-slate-500">{{ auth()->user()->can('access-admin') ? 'HR Administration' : (auth()->user()->can('access-manager') ? 'Department Management' : (auth()->user()->can('access-employee') ? 'Employee Self-Service' : 'My Account')) }}</div>
             </aside>
 
             <div class="min-w-0 flex-1">
                 <header class="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
                     <button type="button" class="rounded-md p-2 text-slate-600 hover:bg-slate-100 lg:hidden" @click="mobileNavigationOpen = true" aria-label="Open navigation">☰</button>
-                    <div class="hidden text-sm text-slate-500 sm:block">{{ auth()->user()->can('access-admin') ? 'HR Administration' : (auth()->user()->can('access-manager') ? 'Department Management' : 'My Account') }}</div>
+                    <div class="hidden text-sm text-slate-500 sm:block">{{ auth()->user()->can('access-admin') ? 'HR Administration' : (auth()->user()->can('access-manager') ? 'Department Management' : (auth()->user()->can('access-employee') ? 'Employee Self-Service' : 'My Account')) }}</div>
 
                     <div class="flex items-center gap-2">
                         <a href="{{ route('notifications.index') }}" class="relative flex size-10 items-center justify-center rounded-lg text-lg text-slate-600 hover:bg-slate-100" aria-label="Notifications{{ $unreadNotificationCount > 0 ? ', '.$unreadNotificationCount.' unread' : '' }}">

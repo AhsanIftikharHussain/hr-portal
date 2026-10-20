@@ -99,7 +99,7 @@ class UserManagementTest extends TestCase
         $this->get(route('admin.dashboard'))->assertOk();
     }
 
-    public function test_created_employee_can_authenticate_and_is_redirected_to_profile(): void
+    public function test_created_employee_can_authenticate_and_is_redirected_to_employee_dashboard(): void
     {
         $superAdmin = User::factory()->withRole(Role::SUPER_ADMIN)->create();
         Role::factory()->create(['name' => 'HR Admin', 'slug' => Role::HR_ADMIN]);
@@ -118,7 +118,7 @@ class UserManagementTest extends TestCase
         $this->post(route('login'), [
             'email' => 'new.employee@example.test',
             'password' => 'SecurePassword123!',
-        ])->assertRedirectToRoute('profile.edit');
+        ])->assertRedirectToRoute('employee.dashboard');
 
         $this->assertAuthenticatedAs(User::query()->where('email', 'new.employee@example.test')->sole());
     }

@@ -26,6 +26,16 @@ class StoreLeaveRequestRequest extends FormRequest
     {
         return [
             'employee_id' => ['required', 'integer', Rule::exists('employees', 'id')->whereNull('deleted_at')],
+            ...self::commonRules(),
+        ];
+    }
+
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public static function commonRules(): array
+    {
+        return [
             'leave_type_id' => ['required', 'integer', Rule::exists('leave_types', 'id')->where('is_active', true)],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],

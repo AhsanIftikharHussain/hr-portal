@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsDepartmentManager;
+use App\Http\Middleware\EnsureUserIsEmployee;
 use App\Http\Responses\LoginResponse;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function (): void {
             Route::middleware('web')->group(base_path('routes/admin.php'));
             Route::middleware('web')->group(base_path('routes/manager.php'));
+            Route::middleware('web')->group(base_path('routes/employee.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -30,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
             'manager' => EnsureUserIsDepartmentManager::class,
+            'employee' => EnsureUserIsEmployee::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
