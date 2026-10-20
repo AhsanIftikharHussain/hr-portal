@@ -45,6 +45,7 @@
                         <x-nav-item :href="route('manager.leave-requests.index')" :active="request()->routeIs('manager.leave-requests.*')">Department Leave</x-nav-item>
                     @endcan
                     <div class="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Account</div>
+                    <x-nav-item :href="route('notifications.index')" :active="request()->routeIs('notifications.*')">Notifications <span class="ml-1 text-xs">{{ $unreadNotificationCount > 0 ? '('.$unreadNotificationCount.')' : '' }}</span></x-nav-item>
                     <x-nav-item :href="route('profile.edit')" :active="request()->routeIs('profile.*')">My Profile</x-nav-item>
                 </nav>
 
@@ -56,21 +57,32 @@
                     <button type="button" class="rounded-md p-2 text-slate-600 hover:bg-slate-100 lg:hidden" @click="mobileNavigationOpen = true" aria-label="Open navigation">☰</button>
                     <div class="hidden text-sm text-slate-500 sm:block">{{ auth()->user()->can('access-admin') ? 'HR Administration' : (auth()->user()->can('access-manager') ? 'Department Management' : 'My Account') }}</div>
 
-                    <div class="relative">
-                        <button type="button" class="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-slate-100" @click="userMenuOpen = !userMenuOpen" @click.outside="userMenuOpen = false" :aria-expanded="userMenuOpen">
-                            <span class="flex size-8 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">{{ str(auth()->user()->name)->substr(0, 1)->upper() }}</span>
-                            <span class="hidden sm:block">
-                                <span class="block text-sm font-medium">{{ auth()->user()->name }}</span>
-                                <span class="block text-xs text-slate-500">{{ auth()->user()->email }}</span>
-                            </span>
-                        </button>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('notifications.index') }}" class="relative flex size-10 items-center justify-center rounded-lg text-lg text-slate-600 hover:bg-slate-100" aria-label="Notifications{{ $unreadNotificationCount > 0 ? ', '.$unreadNotificationCount.' unread' : '' }}">
+                            <svg aria-hidden="true" class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.9 18a3 3 0 0 1-5.8 0m9.4-2H5.5c1.2-1.3 1.8-3.1 1.8-5V9a4.7 4.7 0 0 1 9.4 0v2c0 1.9.6 3.7 1.8 5Z" />
+                            </svg>
+                            @if ($unreadNotificationCount > 0)
+                                <span class="absolute right-0 top-0 flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-5 text-white">{{ $unreadNotificationCount > 99 ? '99+' : $unreadNotificationCount }}</span>
+                            @endif
+                        </a>
 
-                        <div x-cloak x-show="userMenuOpen" x-transition class="absolute right-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
-                            <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">My Profile</a>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100">Sign out</button>
-                            </form>
+                        <div class="relative">
+                            <button type="button" class="flex items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-slate-100" @click="userMenuOpen = !userMenuOpen" @click.outside="userMenuOpen = false" :aria-expanded="userMenuOpen">
+                                <span class="flex size-8 items-center justify-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">{{ str(auth()->user()->name)->substr(0, 1)->upper() }}</span>
+                                <span class="hidden sm:block">
+                                    <span class="block text-sm font-medium">{{ auth()->user()->name }}</span>
+                                    <span class="block text-xs text-slate-500">{{ auth()->user()->email }}</span>
+                                </span>
+                            </button>
+
+                            <div x-cloak x-show="userMenuOpen" x-transition class="absolute right-0 mt-2 w-48 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+                                <a href="{{ route('profile.edit') }}" class="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">My Profile</a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100">Sign out</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </header>
