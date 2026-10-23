@@ -48,4 +48,21 @@ class EmployeeAttendanceTest extends TestCase
         $this->actingAs($user)->get(route('admin.attendance.edit', $record))->assertForbidden();
         $this->actingAs($user)->put(route('admin.attendance.update', $record), [])->assertForbidden();
     }
+
+    public function test_attendance_history_displays_pakistan_local_twelve_hour_times(): void
+    {
+        $user = User::factory()->withRole(Role::EMPLOYEE)->create();
+        $employee = Employee::factory()->create(['user_id' => $user->id]);
+        AttendanceRecord::factory()->create([
+            'employee_id' => $employee->id,
+            'attendance_date' => '2026-10-21',
+            'check_in_at' => '2026-10-21 09:03:00',
+            'check_out_at' => '2026-10-21 17:42:00',
+        ]);
+
+        $this->actingAs($user)->get(route('employee.attendance.index', ['month' => '2026-10']))
+            ->assertOk()
+            ->assertSee('09:03 AM')
+            ->assertSee('05:42 PM');
+    }
 }

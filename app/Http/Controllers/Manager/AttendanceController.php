@@ -33,7 +33,7 @@ class AttendanceController extends Controller
 
         $selectedDate = $request->filled('date')
             ? CarbonImmutable::parse($request->string('date')->toString())
-            : CarbonImmutable::today();
+            : CarbonImmutable::today(config('app.business_timezone'));
 
         $employees = Employee::query()
             ->where('department_id', $departmentId)

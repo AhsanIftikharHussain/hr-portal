@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Employee\AttendanceCheckInController;
+use App\Http\Controllers\Employee\AttendanceCheckOutController;
 use App\Http\Controllers\Employee\AttendanceController;
 use App\Http\Controllers\Employee\DashboardController;
 use App\Http\Controllers\Employee\HolidayController;
@@ -19,6 +21,8 @@ Route::prefix('employee')
             ->names('leave-requests')
             ->only(['index', 'create', 'store', 'show']);
         Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('attendance/check-in', [AttendanceCheckInController::class, 'store'])->name('attendance.check-in');
+        Route::post('attendance/check-out', [AttendanceCheckOutController::class, 'store'])->name('attendance.check-out');
         Route::resource('policies', PolicyController::class)->only(['index', 'show']);
         Route::get('holidays', [HolidayController::class, 'index'])->name('holidays.index');
     });

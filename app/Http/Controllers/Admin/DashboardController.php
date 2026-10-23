@@ -13,6 +13,7 @@ use App\Models\Employee;
 use App\Models\EmployeeContract;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
@@ -60,7 +61,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $today = today();
+        $today = CarbonImmutable::now(config('app.business_timezone'))->startOfDay();
         $leaveMetrics = [
             'pending' => LeaveRequest::query()
                 ->where('status', LeaveRequestStatus::Pending)

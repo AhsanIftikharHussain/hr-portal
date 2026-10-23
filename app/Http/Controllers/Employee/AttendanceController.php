@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Employee;
 
 use App\AttendanceStatus;
 use App\Http\Controllers\Controller;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ class AttendanceController extends Controller
             'month' => ['nullable', 'date_format:Y-m'],
             'status' => ['nullable', Rule::enum(AttendanceStatus::class)],
         ]);
-        $month = $request->string('month')->toString() ?: now()->format('Y-m');
+        $month = $request->string('month')->toString()
+            ?: CarbonImmutable::now(config('app.business_timezone'))->format('Y-m');
         [$year, $monthNumber] = array_map('intval', explode('-', $month));
 
         $attendanceRecords = $employee->attendanceRecords()

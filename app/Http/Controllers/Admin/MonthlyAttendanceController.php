@@ -24,9 +24,10 @@ class MonthlyAttendanceController extends Controller
             'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
         ]);
 
-        $month = $request->integer('month') ?: (int) now()->format('n');
-        $year = $request->integer('year') ?: (int) now()->format('Y');
-        $periodStart = CarbonImmutable::create($year, $month, 1)->startOfMonth();
+        $businessNow = CarbonImmutable::now(config('app.business_timezone'));
+        $month = $request->integer('month') ?: $businessNow->month;
+        $year = $request->integer('year') ?: $businessNow->year;
+        $periodStart = CarbonImmutable::create($year, $month, 1, timezone: config('app.business_timezone'))->startOfMonth();
         $periodEnd = $periodStart->endOfMonth();
 
         $summaries = AttendanceRecord::query()

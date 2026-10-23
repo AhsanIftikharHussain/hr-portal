@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Employee;
 
+use App\AttendanceSource;
 use App\AttendanceStatus;
 use App\Models\AttendanceRecord;
 use App\Models\Employee;
@@ -47,6 +48,68 @@ class EmployeeDashboardTest extends TestCase
 
         $this->actingAs($user)->get(route('employee.dashboard'))
             ->assertOk()
-            ->assertSee('Not Recorded');
+            ->assertSee('Not Recorded')
+            ->assertSee(route('employee.attendance.check-in'))
+            ->assertDontSee(route('employee.attendance.check-out'));
+    }
+
+    public function test_dashboard_shows_check_out_only_for_open_employee_portal_record(): void
+    {
+        $this->travelTo('2026-10-21 12:00:00');
+        $user = User::factory()->withRole(Role::EMPLOYEE)->create();
+        $employee = Employee::factory()->create(['user_id' => $user->id]);
+        AttendanceRecord::factory()->create([
+            'employee_id' => $employee->id,
+            'attendance_date' => '2026-10-21',
+            'check_in_at' => '2026-10-21 09:03:00',
+            'check_out_at' => null,
+            'source' => AttendanceSource::EmployeePortal,
+        ]);
+
+        $this->actingAs($user)->get(route('employee.dashboard'))
+            ->assertOk()
+            ->assertSee('09:03 AM')
+            ->assertSee(route('employee.attendance.check-out'))
+            ->assertDontSee(route('employee.attendance.check-in'));
+    }
+
+    public function test_dashboard_shows_completed_attendance_without_mutation_buttons(): void
+    {
+        $this->travelTo('2026-10-21 18:00:00');
+        $user = User::factory()->withRole(Role::EMPLOYEE)->create();
+        $employee = Employee::factory()->create(['user_id' => $user->id]);
+        AttendanceRecord::factory()->create([
+            'employee_id' => $employee->id,
+            'attendance_date' => '2026-10-21',
+            'check_in_at' => '2026-10-21 09:00:00',
+            'check_out_at' => '2026-10-21 17:30:00',
+            'source' => AttendanceSource::EmployeePortal,
+        ]);
+
+        $this->actingAs($user)->get(route('employee.dashboard'))
+            ->assertOk()
+            ->assertSee('09:00 AM')
+            ->assertSee('05:30 PM')
+            ->assertSee('8.5 hours')
+            ->assertDontSee(route('employee.attendance.check-in'))
+            ->assertDontSee(route('employee.attendance.check-out'));
+    }
+
+    public function test_dashboard_marks_hr_record_as_hr_controlled_without_mutation_buttons(): void
+    {
+        $this->travelTo('2026-10-21 12:00:00');
+        $user = User::factory()->withRole(Role::EMPLOYEE)->create();
+        $employee = Employee::factory()->create(['user_id' => $user->id]);
+        AttendanceRecord::factory()->create([
+            'employee_id' => $employee->id,
+            'attendance_date' => '2026-10-21',
+            'source' => AttendanceSource::HrManual,
+        ]);
+
+        $this->actingAs($user)->get(route('employee.dashboard'))
+            ->assertOk()
+            ->assertSee('Attendance has been recorded by HR')
+            ->assertDontSee(route('employee.attendance.check-in'))
+            ->assertDontSee(route('employee.attendance.check-out'));
     }
 }

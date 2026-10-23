@@ -11,6 +11,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\EmployeeContract;
 use App\Support\PrivateEmployeeFileStorage;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -27,6 +28,7 @@ class EmployeeContractController extends Controller
     public function index(Request $request): View
     {
         Gate::authorize('viewAny', EmployeeContract::class);
+        $businessToday = CarbonImmutable::now(config('app.business_timezone'))->startOfDay();
         $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
             'department_id' => ['nullable', 'integer', Rule::exists('departments', 'id')],
@@ -52,9 +54,9 @@ class EmployeeContractController extends Controller
             ))
             ->when($request->filled('status'), fn (Builder $query) => $query->where('status', $request->string('status')))
             ->when($request->filled('contract_type'), fn (Builder $query) => $query->where('contract_type', $request->string('contract_type')))
-            ->when($request->integer('expiry_window'), function (Builder $query, int $days): void {
+            ->when($request->integer('expiry_window'), function (Builder $query, int $days) use ($businessToday): void {
                 $query->whereIn('status', ContractStatus::expiringStatuses())
-                    ->whereBetween('end_date', [today(), today()->addDays($days)])
+                    ->whereBetween('end_date', [$businessToday, $businessToday->addDays($days)])
                     ->whereHas('employee', fn (Builder $employeeQuery) => $employeeQuery->whereNull('employees.deleted_at'));
             })
             ->orderByDesc('start_date')

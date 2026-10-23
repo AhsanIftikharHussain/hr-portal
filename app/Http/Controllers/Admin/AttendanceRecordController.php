@@ -34,7 +34,7 @@ class AttendanceRecordController extends Controller
 
         $selectedDate = $request->filled('date')
             ? CarbonImmutable::parse($request->string('date')->toString())
-            : CarbonImmutable::today();
+            : CarbonImmutable::today(config('app.business_timezone'));
 
         $employees = Employee::query()
             ->with([
@@ -87,7 +87,7 @@ class AttendanceRecordController extends Controller
         return view('admin.attendance.create', [
             'attendanceRecord' => new AttendanceRecord([
                 'employee_id' => $request->integer('employee_id') ?: null,
-                'attendance_date' => $request->date('date') ?? today(),
+                'attendance_date' => $request->date('date') ?? CarbonImmutable::today(config('app.business_timezone')),
             ]),
             'employees' => Employee::query()->orderBy('full_name')->get(['id', 'employee_code', 'full_name']),
             'statuses' => AttendanceStatus::cases(),

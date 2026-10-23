@@ -10,4 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('hr:notify-contract-expiry')
     ->dailyAt('08:00')
+    ->timezone(config('app.business_timezone'))
     ->withoutOverlapping(60);

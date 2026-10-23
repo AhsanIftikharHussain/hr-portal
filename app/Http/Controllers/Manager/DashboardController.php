@@ -10,6 +10,7 @@ use App\Models\AttendanceRecord;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
@@ -27,7 +28,7 @@ class DashboardController extends Controller
             return view('manager.dashboard', ['department' => null]);
         }
 
-        $today = today();
+        $today = CarbonImmutable::now(config('app.business_timezone'))->startOfDay();
         $employeeQuery = Employee::query()->where('department_id', $department->id);
 
         $attendanceCounts = AttendanceRecord::query()

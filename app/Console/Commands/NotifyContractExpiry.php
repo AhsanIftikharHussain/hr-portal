@@ -8,6 +8,7 @@ use App\Models\EmployeeContract;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\ContractExpiringSoon;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -39,12 +40,13 @@ class NotifyContractExpiry extends Command
         $duplicates = 0;
         $errors = 0;
         $contracts = 0;
+        $businessToday = CarbonImmutable::now(config('app.business_timezone'))->startOfDay();
 
         EmployeeContract::query()
             ->select(['id', 'employee_id', 'contract_type', 'end_date', 'status'])
             ->with('employee:id,full_name,deleted_at')
             ->whereIn('status', ContractStatus::expiringStatuses())
-            ->whereBetween('end_date', [today(), today()->addDays(30)])
+            ->whereBetween('end_date', [$businessToday, $businessToday->addDays(30)])
             ->whereHas('employee', fn (Builder $query) => $query->whereNull('employees.deleted_at'))
             ->lazyById(100)
             ->each(function (EmployeeContract $contract) use ($recipients, &$sent, &$duplicates, &$errors, &$contracts): void {

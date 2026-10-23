@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\EmployeeContract;
+use Carbon\CarbonImmutable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -50,7 +51,8 @@ class ContractExpiringSoon extends Notification
 
     private function message(): string
     {
-        $daysRemaining = (int) today()->diffInDays($this->contract->end_date, false);
+        $businessToday = CarbonImmutable::now(config('app.business_timezone'))->startOfDay();
+        $daysRemaining = (int) $businessToday->diffInDays($this->contract->end_date, false);
 
         return sprintf(
             "%s's %s contract ends on %s (%d %s remaining).",

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreHolidayRequest;
 use App\Http\Requests\UpdateHolidayRequest;
 use App\Models\Holiday;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +27,7 @@ class HolidayController extends Controller
             'search' => ['nullable', 'string', 'max:100'],
             'record_status' => ['nullable', Rule::in(['all', 'active', 'inactive'])],
         ]);
-        $year = $request->integer('year') ?: now()->year;
+        $year = $request->integer('year') ?: CarbonImmutable::now(config('app.business_timezone'))->year;
 
         $holidays = Holiday::query()
             ->whereYear('holiday_date', $year)

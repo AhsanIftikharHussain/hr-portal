@@ -67,6 +67,8 @@ return [
 
     'timezone' => 'UTC',
 
+    'business_timezone' => env('APP_TIMEZONE', 'Asia/Karachi'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

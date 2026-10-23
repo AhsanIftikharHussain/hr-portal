@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Holiday;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -14,7 +15,7 @@ class HolidayCalendarController extends Controller
     {
         Gate::authorize('viewAny', Holiday::class);
         $request->validate(['year' => ['nullable', 'integer', 'between:2000,2100']]);
-        $year = $request->integer('year') ?: now()->year;
+        $year = $request->integer('year') ?: CarbonImmutable::now(config('app.business_timezone'))->year;
 
         $holidaysByMonth = Holiday::query()
             ->where('is_active', true)
