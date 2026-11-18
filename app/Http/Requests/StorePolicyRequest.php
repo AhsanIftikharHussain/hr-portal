@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Models\Policy;
+use App\Rules\MeaningfulPolicyContent;
+use App\Support\PolicyContentSanitizer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,13 +24,13 @@ class StorePolicyRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules(PolicyContentSanitizer $sanitizer): array
     {
         return [
             'policy_category_id' => ['required', 'integer', Rule::exists('policy_categories', 'id')->where('is_active', true)],
             'title' => ['required', 'string', 'max:255'],
             'summary' => ['nullable', 'string', 'max:2000'],
-            'content' => ['required', 'string', 'max:100000'],
+            'content' => ['required', 'string', 'max:100000', new MeaningfulPolicyContent($sanitizer)],
             'effective_date' => ['nullable', 'date'],
         ];
     }

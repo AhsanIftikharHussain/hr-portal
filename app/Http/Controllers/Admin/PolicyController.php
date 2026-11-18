@@ -7,7 +7,9 @@ use App\Http\Requests\StorePolicyRequest;
 use App\Http\Requests\UpdatePolicyRequest;
 use App\Models\Policy;
 use App\Models\PolicyCategory;
+use App\PolicyContentFormat;
 use App\PolicyStatus;
+use App\Support\PolicyContentSanitizer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -55,10 +57,12 @@ class PolicyController extends Controller
         return view('admin.policies.create', $this->formData() + ['policy' => new Policy]);
     }
 
-    public function store(StorePolicyRequest $request): RedirectResponse
+    public function store(StorePolicyRequest $request, PolicyContentSanitizer $sanitizer): RedirectResponse
     {
         Policy::query()->create([
-            ...$request->safe()->only(['policy_category_id', 'title', 'summary', 'content', 'effective_date']),
+            ...$request->safe()->only(['policy_category_id', 'title', 'summary', 'effective_date']),
+            'content' => $sanitizer->sanitize($request->string('content')->toString()),
+            'content_format' => PolicyContentFormat::Html,
             'status' => PolicyStatus::Draft,
             'created_by' => $request->user()->id,
             'updated_by' => $request->user()->id,
@@ -83,7 +87,7 @@ class PolicyController extends Controller
         return view('admin.policies.edit', $this->formData($policy) + ['policy' => $policy]);
     }
 
-    public function update(UpdatePolicyRequest $request, Policy $policy): RedirectResponse
+    public function update(UpdatePolicyRequest $request, Policy $policy, PolicyContentSanitizer $sanitizer): RedirectResponse
     {
         $requestedStatus = PolicyStatus::from($request->string('status')->toString());
         $publishedAt = $policy->published_at;
@@ -93,7 +97,9 @@ class PolicyController extends Controller
         }
 
         $policy->update([
-            ...$request->safe()->only(['policy_category_id', 'title', 'summary', 'content', 'status', 'effective_date']),
+            ...$request->safe()->only(['policy_category_id', 'title', 'summary', 'status', 'effective_date']),
+            'content' => $sanitizer->sanitize($request->string('content')->toString()),
+            'content_format' => PolicyContentFormat::Html,
             'published_at' => $publishedAt,
             'updated_by' => $request->user()->id,
         ]);

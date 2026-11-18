@@ -6,6 +6,7 @@ use App\Models\Policy;
 use App\Models\PolicyCategory;
 use App\Models\Role;
 use App\Models\User;
+use App\PolicyContentFormat;
 use App\PolicyStatus;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
@@ -36,6 +37,82 @@ class PolicyManagementTest extends TestCase
         $this->assertSame($user->id, $policy->created_by);
         $this->assertSame($user->id, $policy->updated_by);
         $this->assertNull($policy->published_at);
+    }
+
+    public function test_rich_policy_content_is_sanitized_before_it_is_stored(): void
+    {
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $category = PolicyCategory::factory()->create();
+
+        $this->actingAs($user)->post(route('admin.policies.store'), [
+            'policy_category_id' => $category->id,
+            'title' => 'Remote Work Policy',
+            'summary' => 'Rules for working remotely.',
+            'content' => '<h1 onclick="alert(1)">Remote Work</h1><p style="color:red">Follow these rules.</p><ul><li>Stay available</li></ul><a href="javascript:alert(1)">Unsafe link</a><a href="https://example.com" target="_blank">Handbook</a><script>alert(1)</script><iframe src="https://example.com"></iframe>',
+            'effective_date' => '2026-11-20',
+        ])->assertRedirectToRoute('admin.policies.index');
+
+        $policy = Policy::query()->sole();
+        $this->assertSame(PolicyContentFormat::Html, $policy->content_format);
+        $this->assertStringContainsString('<h1>Remote Work</h1>', $policy->content);
+        $this->assertStringContainsString('<ul><li>Stay available</li></ul>', $policy->content);
+        $this->assertStringContainsString('href="https://example.com"', $policy->content);
+        $this->assertStringContainsString('rel="noopener noreferrer"', $policy->content);
+        $this->assertStringNotContainsString('onclick', $policy->content);
+        $this->assertStringNotContainsString('style=', $policy->content);
+        $this->assertStringNotContainsString('javascript:', $policy->content);
+        $this->assertStringNotContainsString('<script', $policy->content);
+        $this->assertStringNotContainsString('<iframe', $policy->content);
+    }
+
+    public function test_policy_content_requires_readable_text_after_sanitization(): void
+    {
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $category = PolicyCategory::factory()->create();
+
+        $this->actingAs($user)->post(route('admin.policies.store'), [
+            'policy_category_id' => $category->id,
+            'title' => 'Empty Policy',
+            'content' => '<script>alert(1)</script><hr><p>&nbsp;</p>',
+        ])->assertSessionHasErrors([
+            'content' => 'The policy content must contain readable text.',
+        ]);
+
+        $this->assertDatabaseCount('policies', 0);
+    }
+
+    public function test_rich_policy_content_is_rendered_as_formatted_html(): void
+    {
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $policy = Policy::factory()->create([
+            'content' => '<h1>Working Hours</h1><p><strong>Core hours</strong> apply.</p><ol><li>Arrive on time</li></ol>',
+            'content_format' => PolicyContentFormat::Html,
+        ]);
+
+        $this->actingAs($user)->get(route('admin.policies.show', $policy))
+            ->assertSee('<h1>Working Hours</h1>', false)
+            ->assertSee('<strong>Core hours</strong>', false)
+            ->assertSee('<ol><li>Arrive on time</li></ol>', false);
+    }
+
+    public function test_existing_plain_text_policy_becomes_sanitized_rich_content_when_updated(): void
+    {
+        $user = User::factory()->withRole(Role::HR_ADMIN)->create();
+        $policy = Policy::factory()->create([
+            'content' => "Existing first line\nExisting second line",
+            'content_format' => PolicyContentFormat::PlainText,
+        ]);
+
+        $this->actingAs($user)->put(route('admin.policies.update', $policy), $this->payload($policy, [
+            'content' => '<h2>Updated Policy</h2><p>Approved <strong>content</strong>.</p><img src=x onerror=alert(1)>',
+        ]))->assertRedirectToRoute('admin.policies.index');
+
+        $policy->refresh();
+        $this->assertSame(PolicyContentFormat::Html, $policy->content_format);
+        $this->assertStringContainsString('<h2>Updated Policy</h2>', $policy->content);
+        $this->assertStringContainsString('<strong>content</strong>', $policy->content);
+        $this->assertStringNotContainsString('<img', $policy->content);
+        $this->assertStringNotContainsString('onerror', $policy->content);
     }
 
     public function test_draft_can_be_published_and_records_first_publication_time(): void

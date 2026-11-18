@@ -7,6 +7,7 @@ use App\Models\Holiday;
 use App\Models\Policy;
 use App\Models\Role;
 use App\Models\User;
+use App\PolicyContentFormat;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
@@ -64,6 +65,20 @@ class EmployeePolicyHolidayTest extends TestCase
             ->assertOk()
             ->assertSee('&lt;script&gt;', false)
             ->assertDontSee('<script>alert("policy")</script>', false);
+    }
+
+    public function test_employee_sees_published_rich_policy_formatting(): void
+    {
+        $user = $this->employeeUser();
+        $policy = Policy::factory()->published()->create([
+            'content' => '<h2>Leave Procedure</h2><p>Submit the form to <strong>HR</strong>.</p><ul><li>Give notice</li></ul>',
+            'content_format' => PolicyContentFormat::Html,
+        ]);
+
+        $this->actingAs($user)->get(route('employee.policies.show', $policy))
+            ->assertSee('<h2>Leave Procedure</h2>', false)
+            ->assertSee('<strong>HR</strong>', false)
+            ->assertSee('<ul><li>Give notice</li></ul>', false);
     }
 
     private function employeeUser(): User

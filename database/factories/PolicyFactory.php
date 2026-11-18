@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Policy;
 use App\Models\PolicyCategory;
 use App\Models\User;
+use App\PolicyContentFormat;
 use App\PolicyStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -25,6 +26,7 @@ class PolicyFactory extends Factory
             'title' => fake()->sentence(4),
             'summary' => fake()->sentence(),
             'content' => fake()->paragraphs(3, true),
+            'content_format' => PolicyContentFormat::PlainText,
             'status' => PolicyStatus::Draft,
             'effective_date' => now()->toDateString(),
             'published_at' => null,

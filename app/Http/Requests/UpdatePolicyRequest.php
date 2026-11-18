@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use App\Models\Policy;
 use App\PolicyStatus;
+use App\Rules\MeaningfulPolicyContent;
+use App\Support\PolicyContentSanitizer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,7 +26,7 @@ class UpdatePolicyRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
+    public function rules(PolicyContentSanitizer $sanitizer): array
     {
         $policy = $this->route('policy');
 
@@ -41,7 +43,7 @@ class UpdatePolicyRequest extends FormRequest
             ],
             'title' => ['required', 'string', 'max:255'],
             'summary' => ['nullable', 'string', 'max:2000'],
-            'content' => ['required', 'string', 'max:100000'],
+            'content' => ['required', 'string', 'max:100000', new MeaningfulPolicyContent($sanitizer)],
             'status' => ['required', Rule::enum(PolicyStatus::class)],
             'effective_date' => [
                 'nullable',
